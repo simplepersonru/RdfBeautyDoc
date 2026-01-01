@@ -1,0 +1,55 @@
+﻿@using RdfsBeautyDoc
+<!-- templates/Index.cshtml -->
+@model IndexViewModel
+@{
+    Layout = "templates/_Layout.cshtml";
+}
+
+<h1>@Model.Title</h1>
+
+<!-- Классы -->
+@if (Model.Classes.Any())
+{
+    <h2>Classes (@Model.Classes.Count)</h2>
+    <div class="row">
+        @foreach (var cls in Model.Classes)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="/classes/@(cls.Class.Id).html">@cls.Class.Id</a>
+                        </h5>
+                        <p class="card-text">
+                            @cls.Class.Label
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Свойства -->
+@if (Model.Properties.Any())
+{
+    <h2>Properties (@Model.Properties.Count)</h2>
+    <div class="row">
+        @foreach (var prop in Model.Properties)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="/properties/@(prop.Id).html">@prop.Id</a>
+                        </h5>
+                        <p class="card-text">
+                            <strong>Domain:</strong> @prop.Domain<br>
+                            <strong>Range:</strong> @prop.Range
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
