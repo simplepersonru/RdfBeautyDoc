@@ -42,8 +42,8 @@ namespace RdfsBeautyDoc
 					Class? domainClass = null;
 					foreach (var child in el.Elements())
 					{
-						if (child.Name.LocalName == "Domain")
-							domainClass = GetOrCreate(classes, child.Value.Substring(1));
+						if (child.Name.LocalName == "domain")
+							domainClass = GetOrCreate(classes, child.FirstAttribute?.Value.Substring(1));
 					}
 					if (domainClass == null)
 						continue;
@@ -63,17 +63,17 @@ namespace RdfsBeautyDoc
 
 					foreach (var child in el.Elements())
 					{
-						if (child.Name.LocalName == "Label")
+						if (child.Name.LocalName == "label")
 							prop.Label = child.Value;
-						else if (child.Name.LocalName == "Range")
+						else if (child.Name.LocalName == "range")
 						{
-							prop.Range = child.Value.Substring(1);
+							prop.Range = child.FirstAttribute?.Value.Substring(1);
 							prop.RangeClass = GetOrCreate(classes, prop.Range);
 						}
-						else if (child.Name.LocalName == "Multiplicity")
-							prop.Multiplicity = child.Value.Substring(1);
-						else if (child.Name.LocalName == "InverseRoleName")
-							prop.InverseRoleName = child.Value;
+						else if (child.Name.LocalName == "multiplicity")
+							prop.Multiplicity = child.FirstAttribute?.Value.Substring(3);
+						else if (child.Name.LocalName == "inverseRoleName")
+							prop.InverseRoleName = child.FirstAttribute?.Value;
 					}
 				}
 				else if (el.Name.LocalName == "Class")
@@ -84,13 +84,13 @@ namespace RdfsBeautyDoc
 
 					foreach (var child in el.Elements())
 					{
-						if (child.Name.LocalName == "Label")
+						if (child.Name.LocalName == "label")
 							cls.Label = child.Value;
-						else if (child.Name.LocalName == "Comment")
+						else if (child.Name.LocalName == "comment")
 							cls.Comment = child.Value;
-						else if (child.Name.LocalName == "Stereotype")
+						else if (child.Name.LocalName == "stereotype")
 						{
-							cls.Stereotype = child.Value switch
+							cls.Stereotype = child.FirstAttribute?.Value.Substring(1) switch
 							{
 								"Enumeration" => Stereotype.Enum,
 								"Datatype" => Stereotype.DataType,
@@ -119,7 +119,7 @@ namespace RdfsBeautyDoc
 					enumClass.Descriptions.Add(descr.Id, descr);
 					foreach (var child in el.Elements())
 					{
-						if (child.Name.LocalName == "Label")
+						if (child.Name.LocalName == "label")
 							descr.Label = child.Value;
 					}
 				}

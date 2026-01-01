@@ -1,0 +1,251 @@
+@using Microsoft.AspNetCore.Html
+@using RdfsBeautyDoc
+@model ClassListViewModel
+@{
+    Layout = "_Layout.cshtml";
+}
+
+<h1>Classes <small class="text-muted">(@Model.Classes.Count total)</small></h1>
+<p class="lead">All types in the schema: Classes, Enums, Primitives, and Data Types</p>
+
+<!-- Фильтры -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <input type="text" class="form-control" id="classesSearch"
+               placeholder="Поиск по ID, подписи или описанию">
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body py-2">
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <span class="d-flex align-items-center">
+                        <span class="badge bg-primary me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Class)</span>
+                        <span>Classes</span>
+                    </span>
+                    <span class="d-flex align-items-center">
+                        <span class="badge bg-purple me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Enum)</span>
+                        <span>Enums</span>
+                    </span>
+                    <span class="d-flex align-items-center">
+                        <span class="badge bg-warning me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Primitive)</span>
+                        <span>Primitives</span>
+                    </span>
+                    <span class="d-flex align-items-center">
+                        <span class="badge bg-info me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.DataType)</span>
+                        <span>Data Types</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица классов -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="classesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Label</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cls in Model.Classes)
+                    {
+                        <tr class="searchable class-row"
+                            data-id="@cls.Id.ToLower()"
+                            data-label="@(cls.Label?.ToLower() ?? "")"
+                            data-description="@(cls.Comment?.ToLower() ?? "")"
+                            data-stereotype="@cls.Stereotype.ToString().ToLower()"
+                            data-url="/@(cls.StereoPath)/@(cls.Id).html">
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <a href="/@(cls.StereoPath)/@(cls.Id).html" class="text-decoration-none fw-bold">
+                                        @cls.Id
+                                    </a>
+                                    <small >
+                                        @GetStereotypeBadge(cls.Stereotype)
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(cls.Label))
+                                {
+                                    @cls.Label
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(cls.Comment))
+                                {
+                                    <div class="text-wrap" style="min-width: 200px; max-width: 1200px;">
+                                        <small>@cls.Comment</small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+
+                                <!-- Дополнительная информация для разных типов -->
+                                <div class="mt-1">
+                                    @if (cls.Stereotype == Stereotype.Class && cls.Properties.Any())
+                                    {
+                                        <small class="text-muted">
+                                            <span class="badge bg-success">@cls.Properties.Count properties</span>
+                                            @if (cls.SubClass != null)
+                                            {
+                                                <span class="ms-2">Extends: @cls.SubClass.Id</span>
+                                            }
+                                        </small>
+                                    }
+                                    else if (cls.Stereotype == Stereotype.Enum && cls.Descriptions.Any())
+                                    {
+                                        <small class="text-muted">
+                                            <span class="badge bg-purple">@cls.Descriptions.Count values</span>
+                                        </small>
+                                    }
+                                    else if (cls.Stereotype == Stereotype.DataType && cls.SubClass != null)
+                                    {
+                                        <small class="text-muted">
+                                            Extends: @cls.SubClass.Id
+                                        </small>
+                                    }
+                                </div>
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Classes.Any())
+{
+    <div class="alert alert-info mt-4">
+        <h4 class="alert-heading">No classes found</h4>
+        <p>The schema doesn't contain any class definitions.</p>
+    </div>
+}
+
+<script>
+    // Фильтрация таблицы
+    const searchInput = document.getElementById('classesSearch');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            filterClasses();
+        });
+    }
+
+    function filterClasses() {
+        const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+
+        const rows = document.querySelectorAll('.class-row');
+        let visibleCount = 0;
+
+        rows.forEach((row, index) => {
+            const id = row.dataset.id || '';
+            const label = row.dataset.label || '';
+            const description = row.dataset.description || '';
+
+            // Проверка поискового запроса
+            const searchMatches = !searchQuery ||
+                id.includes(searchQuery) ||
+                label.includes(searchQuery) ||
+                description.includes(searchQuery);
+
+            const isVisible = searchMatches;
+            row.style.display = isVisible ? '' : 'none';
+
+            if (isVisible) {
+                visibleCount++;
+            }
+        });
+
+        // Обновляем счетчик если элемент существует
+        const visibleCountElement = document.getElementById('visibleCount');
+        if (visibleCountElement) {
+            visibleCountElement.textContent = visibleCount;
+        }
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        // Добавляем возможность клика по всей строке
+        const classRows = document.querySelectorAll('.class-row');
+
+        classRows.forEach(row => {
+            row.style.cursor = 'pointer';
+            row.addEventListener('click', function(e) {
+                // Не переходим по ссылке если кликнули на ссылку
+                if (e.target.tagName !== 'A' && !e.target.closest('a')) {
+                    const link = this.querySelector('a.fw-bold');
+                    if (link && link.href) {
+                        window.location.href = link.href;
+                    }
+                }
+            });
+        });
+
+        // Инициализируем фильтрацию
+        filterClasses();
+    });
+</script>
+
+<style>
+    .search-highlight {
+        background-color: #fff3cd !important;
+    }
+
+    .class-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+</style>
+
+@functions {
+    HtmlString GetStereotypeBadge(Stereotype stereotype)
+    {
+        var badgeClass = stereotype switch
+        {
+            Stereotype.Class => "badge-class",
+            Stereotype.Enum => "badge-enum",
+            Stereotype.Primitive => "badge-primitive",
+            Stereotype.DataType => "badge-datatype",
+            _ => "badge-secondary"
+        };
+
+        var displayText = stereotype switch
+        {
+            Stereotype.Class => "Class",
+            Stereotype.Enum => "Enum",
+            Stereotype.Primitive => "Primitive",
+            Stereotype.DataType => "Data Type",
+            _ => stereotype.ToString()
+        };
+
+        return new HtmlString($"<span class=\"badge {badgeClass}\">{displayText}</span>");
+    }
+}

@@ -1,53 +1,56 @@
+@using Microsoft.AspNetCore.Html
 @using RdfsBeautyDoc
-<!-- templates/Class.cshtml -->
 @model ClassViewModel
 @{
     Layout = "_Layout.cshtml";
 }
 
-<!-- Заголовок класса -->
-<div class="row mb-4">
-    <div class="col">
-        <h1 class="display-5">@Model.Class.Id</h1>
-        <p class="lead">@Model.Class.Label</p>
+<h1>@Model.Class.Id <small class="text-muted">@GetStereotypeBadge(Model.Class.Stereotype)</small></h1>
 
-        @if (!string.IsNullOrEmpty(Model.Class.Comment))
-        {
-            <div class="alert alert-info">
-                @Model.Class.Comment
-            </div>
-        }
-    </div>
-</div>
+@if (!string.IsNullOrEmpty(Model.Class.Label))
+{
+    <p class="lead">@Model.Class.Label</p>
+}
 
-<!-- Диаграмма -->
+@if (!string.IsNullOrEmpty(Model.Class.Comment))
+{
+    <div class="alert alert-info">@Model.Class.Comment</div>
+}
+
 @if (!string.IsNullOrEmpty(Model.Class.SvgDiagram))
 {
-    <div class="diagram-container mb-4">
-        <h4>Class Diagram</h4>
-        @(new Microsoft.AspNetCore.Html.HtmlString(Model.Class.SvgDiagram))
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Diagram</h5>
+        </div>
+        <div class="card-body diagram-container">
+            @(new Microsoft.AspNetCore.Html.HtmlString(Model.Class.SvgDiagram))
+        </div>
     </div>
 }
 
-<!-- Основное содержимое -->
-<div class="row">
-    <!-- Левая колонка: свойства класса -->
+<div class="row mt-4">
     <div class="col-lg-8">
-        @if (Model.Properties.Any())
+        <!-- Свойства класса (только для обычных классов) -->
+        @if (Model.Class.Stereotype == Stereotype.Class && Model.Properties.Any())
         {
             <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Properties</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Properties (@Model.Properties.Count)</h5>
+                    @if (Model.Properties.Count > 10)
+                    {
+                        <small class="text-muted">Showing first 10 of @Model.Properties.Count</small>
+                    }
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Property</th>
-                                    <th>Type</th>
-                                    <th>Multiplicity</th>
-                                    <th>Description</th>
+                                    <th>ID</th>
+                                    <th>Тип</th>
+                                    <th>Подпись</th>
+                                    <th>Количество</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -56,29 +59,41 @@
                                     <tr class="searchable">
                                         <td>
                                             <a href="/properties/@(prop.Id).html" class="text-decoration-none">
-                                                <strong>@prop.Id</strong>
+                                                @prop.Id
                                             </a>
                                         </td>
                                         <td>
-                                            @if (Model.AllClasses.FirstOrDefault(c => c.Id == prop.Range) != null)
+                                            @if (prop.RangeClass != null)
                                             {
-                                                <a href="/classes/@(prop.Range).html" class="badge bg-primary text-decoration-none">
+                                                <a href="/classes/@(prop.RangeClass.Id).html" class="badge bg-primary text-decoration-none">
                                                     @prop.Range
                                                 </a>
                                             }
                                             else
                                             {
-                                                <code class="text-muted">@prop.Range</code>
+                                                <code>@prop.Range</code>
                                             }
                                         </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(prop.Label))
+                                            {
+                                                <small class="text-muted">@prop.Label</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+  
                                         <td>
                                             @if (!string.IsNullOrEmpty(prop.Multiplicity))
                                             {
                                                 <span class="badge bg-info">@prop.Multiplicity</span>
                                             }
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">@prop.Label</small>
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -88,122 +103,206 @@
                 </div>
             </div>
         }
-        else
-        {
-            <div class="alert alert-warning">
-                This class has no properties defined.
-            </div>
-        }
 
-        <!-- Иерархия -->
-        @if (Model.ParentClasses.Any() || Model.ChildClasses.Any())
+        <!-- Элементы перечисления (только для enums) -->
+        @if (Model.Class.Stereotype == Stereotype.Enum && Model.Class.Descriptions.Any())
         {
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Class Hierarchy</h5>
+                    <h5 class="mb-0">Enumeration Values (@Model.Class.Descriptions.Count)</h5>
                 </div>
-                <div class="card-body">
-                    <!-- Родительские классы -->
-                    @if (Model.ParentClasses.Any())
-                    {
-                        <div class="mb-3">
-                            <h6>Inherits from:</h6>
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach (var parent in Model.ParentClasses)
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Value</th>
+                                    <th>Label</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var desc in Model.Class.Descriptions.Values)
                                 {
-                                    <a href="/classes/@(parent.Id).html"
-                                       class="btn btn-outline-primary btn-sm">
-                                        @parent.Id
-                                    </a>
+                                    <tr class="searchable">
+                                        <td>
+                                            <code>@desc.Id</code>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(desc.Label))
+                                            {
+                                                <strong>@desc.Label</strong>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                    </tr>
                                 }
-                            </div>
-                        </div>
-                    }
-
-                    <!-- Дочерние классы -->
-                    @if (Model.ChildClasses.Any())
-                    {
-                        <div>
-                            <h6>Extended by:</h6>
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach (var child in Model.ChildClasses)
-                                {
-                                    <a href="/classes/@(child.Id).html"
-                                       class="btn btn-outline-success btn-sm">
-                                        @child.Id
-                                    </a>
-                                }
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    <!-- Правая колонка: быстрые ссылки -->
-    <div class="col-lg-4">
-        <!-- Быстрые ссылки -->
-        <div class="card mb-3">
-            <div class="card-header">
-                <h6 class="mb-0">Quick Links</h6>
-            </div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    <a href="/index.html" class="list-group-item list-group-item-action">
-                        ← Back to Home
-                    </a>
-                    <a href="/classes/index.html" class="list-group-item list-group-item-action">
-                        📚 All Classes
-                    </a>
-                    <a href="/properties/index.html" class="list-group-item list-group-item-action">
-                        🔗 All Properties
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Где используется -->
-        @if (Model.UsedInClasses.Any())
-        {
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h6 class="mb-0">Used In</h6>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-2">This class is used as range in:</p>
-                    <div class="list-group list-group-flush">
-                        @foreach (var usedIn in Model.UsedInClasses)
-                        {
-                            <a href="/classes/@(usedIn.Id).html"
-                               class="list-group-item list-group-item-action py-2">
-                                @usedIn.Id
-                            </a>
-                        }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         }
 
-        <!-- Связанные классы -->
-        <div class="card">
+        <!-- Использование (где этот класс используется как range) -->
+        @{
+            var usedInProperties = Model.AllProperties
+            .Where(p => p.Range == Model.Class.Id)
+            .ToList();
+        }
+
+        @if (usedInProperties.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Used in Properties (@usedInProperties.Count)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Domain</th>
+                                    <th>Label</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var prop in usedInProperties.Take(10))
+                                {
+                                    <tr class="searchable">
+                                        <td>
+                                            <a href="/properties/@(prop.Id).html" class="text-decoration-none">
+                                                @prop.Id
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a href="/@(prop.Domain.StereoPath)/@(prop.Domain.Id).html" class="badge bg-primary text-decoration-none">
+                                                @prop.Domain.Id
+                                            </a>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(prop.Label))
+                                            {
+                                                <small class="text-muted">@prop.Label</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (usedInProperties.Count > 10)
+                    {
+                        <div class="card-footer text-center">
+                            <small class="text-muted">
+                                Showing first 10 of @usedInProperties.Count properties
+                            </small>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Информация о классе -->
+        <div class="card mb-3">
             <div class="card-header">
-                <h6 class="mb-0">Related Classes</h6>
+                <h6 class="mb-0">Информация о классе</h6>
             </div>
             <div class="card-body">
-                <div class="list-group list-group-flush">
-                    @foreach (var related in Model.AllClasses
-                                        .Where(c => c.Id != Model.Class.Id)
-                                        .Take(5)
-                                        .OrderBy(c => c.Id))
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">ID</dt>
+                    <dd class="col-sm-8"><code>@Model.Class.Id</code></dd>
+
+                    <dt class="col-sm-4">Тип</dt>
+                    <dd class="col-sm-8">@GetStereotypeBadge(Model.Class.Stereotype)</dd>
+
+                    @if (!string.IsNullOrEmpty(Model.Class.Label))
                     {
-                        <a href="/classes/@(related.Id).html"
-                           class="list-group-item list-group-item-action py-2">
-                            @related.Id
+                        <dt class="col-sm-4">Подпись</dt>
+                        <dd class="col-sm-8">@Model.Class.Label</dd>
+                    }
+
+                    @if (Model.Class.SubClass != null)
+                    {
+                        <dt class="col-sm-4">Наследует</dt>
+                        <dd class="col-sm-8">
+                            <a href="/@(Model.Class.StereoPath)/@(Model.Class.SubClass.Id).html" class="text-decoration-none">
+                                @Model.Class.SubClass.Id
+                            </a>
+                        </dd>
+                    }
+
+                    @if (Model.Class.Stereotype == Stereotype.Class)
+                    {
+                        <dt class="col-sm-4">Свойств</dt>
+                        <dd class="col-sm-8">@Model.Properties.Count</dd>
+                    }
+
+                    @if (Model.Class.Stereotype == Stereotype.Enum)
+                    {
+                        <dt class="col-sm-4">Значений</dt>
+                        <dd class="col-sm-8">@Model.Class.Descriptions.Count</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <!-- Навигация -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">Навигация</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="/@(Model.Class.StereoPath)/_index.html" class="list-group-item list-group-item-action">
+                        ← All Classes
+                    </a>
+                    @if (Model.Class.SubClass != null)
+                    {
+                        <a href="/@(Model.Class.StereoPath)/@(Model.Class.SubClass.Id).html"
+                           class="list-group-item list-group-item-action">
+                            ↑ Parent: @Model.Class.SubClass.Id
                         </a>
                     }
+                    <a href="/index.html" class="list-group-item list-group-item-action">
+                        🏠 Home
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@functions {
+    HtmlString GetStereotypeBadge(Stereotype stereotype)
+    {
+        var badgeClass = stereotype switch
+        {
+            Stereotype.Class => "bg-primary",
+            Stereotype.Enum => "bg-purple",
+            Stereotype.Primitive => "bg-warning",
+            Stereotype.DataType => "bg-info",
+            _ => "bg-secondary"
+        };
+
+        var displayText = stereotype switch
+        {
+            Stereotype.Class => "CLASS",
+            Stereotype.Enum => "ENUM",
+            Stereotype.Primitive => "PRIMITIVE",
+            Stereotype.DataType => "DATA TYPE",
+            _ => stereotype.ToString().ToUpper()
+        };
+
+        return new HtmlString($"<span class=\"badge {badgeClass}\">{displayText}</span>");
+    }
+}

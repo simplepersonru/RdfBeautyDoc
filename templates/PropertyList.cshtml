@@ -1,0 +1,165 @@
+@using RdfsBeautyDoc
+@model PropertyListViewModel
+@{
+    Layout = "_Layout.cshtml";
+}
+
+<h1>Properties <small class="text-muted">(@Model.Properties.Count)</small></h1>
+<p class="lead">Все свойства и связи в схеме</p>
+
+<!-- Фильтры -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <input type="text" class="form-control" id="propertyFilter"
+               placeholder="Поиск по ID, Label, Domain или Range...">
+    </div>
+</div>
+
+<!-- Таблица свойств -->
+<div class="table-responsive">
+    <table class="table table-hover" id="propertiesTable">
+        <thead class="table-light">
+            <tr>
+                <th>Property</th>
+                <th>Label</th>
+                <th>Domain</th>
+                <th>Range</th>
+                <th>Multiplicity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var prop in Model.Properties)
+            {
+                <tr class="searchable property-row"
+                    data-id="@prop.Id.ToLower()"
+                    data-label="@(prop.Label?.ToLower() ?? "")"
+                    data-domain="@prop.Domain.Id.ToLower()"
+                    data-range="@prop.Range.ToLower()">
+                    <td>
+                        <a href="/properties/@(prop.Id).html" class="fw-bold">@prop.Id</a>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(prop.Label))
+                        {
+                            <small class="text-muted">@prop.Label</small>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="/classes/@(prop.Domain.Id).html" class="badge bg-primary text-decoration-none">
+                            @prop.Domain.Id
+                        </a>
+                    </td>
+                    <td>
+                        @if (prop.RangeClass != null)
+                        {
+                            <a href="/classes/@(prop.RangeClass.Id).html" class="badge bg-success text-decoration-none">
+                                @prop.Range
+                            </a>
+                        }
+                        else
+                        {
+                            <code>@prop.Range</code>
+                        }
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(prop.Multiplicity))
+                        {
+                            <span class="badge bg-info">@prop.Multiplicity</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Properties.Any())
+{
+    <div class="alert alert-info">
+        <h4 class="alert-heading">No properties found</h4>
+        <p>The schema doesn't contain any property definitions.</p>
+    </div>
+}
+
+<script>
+    // Фильтрация таблицы
+    const propertyFilterInput = document.getElementById('propertyFilter');
+    if (propertyFilterInput) {
+        propertyFilterInput.addEventListener('input', filterProperties);
+    }
+
+    function filterProperties() {
+        const searchQuery = propertyFilterInput ? propertyFilterInput.value.toLowerCase() : '';
+
+        const rows = document.querySelectorAll('.property-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const id = row.dataset.id || '';
+            const label = row.dataset.label || '';
+            const domain = row.dataset.domain || '';
+            const range = row.dataset.range || '';
+
+            const matches = !searchQuery ||
+                          id.includes(searchQuery) ||
+                          label.includes(searchQuery) ||
+                          domain.includes(searchQuery) ||
+                          range.includes(searchQuery);
+
+            row.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+    }
+
+    // Сортировка таблицы
+    const tableHeaders = document.querySelectorAll('#propertiesTable thead th');
+    if (tableHeaders.length > 0) {
+        tableHeaders.forEach((th, index) => {
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', () => sortTable(index));
+        });
+    }
+
+    function sortTable(columnIndex) {
+        const table = document.getElementById('propertiesTable');
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr:not([style*="display: none"])'));
+
+        rows.sort((a, b) => {
+            const aText = a.cells[columnIndex].textContent.trim().toLowerCase();
+            const bText = b.cells[columnIndex].textContent.trim().toLowerCase();
+            return aText.localeCompare(bText);
+        });
+
+        // Переставляем строки
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Инициализация - обрабатываем клики по строкам
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.property-row').forEach(row => {
+            row.style.cursor = 'pointer';
+            row.addEventListener('click', function(e) {
+                // Не переходим если кликнули на ссылку
+                if (e.target.tagName !== 'A' && !e.target.closest('a')) {
+                    const link = this.querySelector('a.fw-bold');
+                    if (link && link.href) {
+                        window.location.href = link.href;
+                    }
+                }
+            });
+        });
+    });
+</script>

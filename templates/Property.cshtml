@@ -1,0 +1,131 @@
+@using RdfsBeautyDoc
+@model PropertyViewModel
+@{
+    Layout = "_Layout.cshtml";
+}
+
+<h1>@Model.Property.Id</h1>
+<p class="lead">@Model.Property.Label</p>
+
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <!-- Основная информация -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о свойстве</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Identifier</dt>
+                    <dd class="col-sm-9"><code>@Model.Property.Id</code></dd>
+
+                    <dt class="col-sm-3">Label</dt>
+                    <dd class="col-sm-9">@Model.Property.Label</dd>
+
+                    <dt class="col-sm-3">Domain</dt>
+                    <dd class="col-sm-9">
+                        <a href="/classes/@(Model.Property.Domain.Id).html" class="text-decoration-none">
+                            <span class="badge bg-primary">@Model.Property.Domain.Id</span>
+                        </a>
+                        <small class="text-muted d-block mt-1">@Model.Property.Domain.Label</small>
+                    </dd>
+
+                    <dt class="col-sm-3">Range</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.RangeClass != null)
+                        {
+                            <a href="/classes/@(Model.RangeClass.Id).html" class="text-decoration-none">
+                                <span class="badge bg-success">@Model.Property.Range</span>
+                            </a>
+                            <small class="text-muted d-block mt-1">@Model.RangeClass.Label</small>
+                        }
+                        else
+                        {
+                            <code>@Model.Property.Range</code>
+                            <small class="text-muted d-block mt-1">Primitive type</small>
+                        }
+                    </dd>
+
+                    @if (!string.IsNullOrEmpty(Model.Property.Multiplicity))
+                    {
+                        <dt class="col-sm-3">Multiplicity</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-info">@Model.Property.Multiplicity</span>
+                        </dd>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Property.InverseRoleName))
+                    {
+                        <dt class="col-sm-3">Inverse Role</dt>
+                        <dd class="col-sm-9">
+                            <code>@Model.Property.InverseRoleName</code>
+                        </dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Навигация -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">Navigation</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="/classes/@(Model.Property.Domain.Id).html"
+                       class="list-group-item list-group-item-action">
+                        ← Back to Domain Class
+                    </a>
+                    <a href="/properties/_index.html"
+                       class="list-group-item list-group-item-action">
+                        📋 All Properties
+                    </a>
+                    @if (Model.RangeClass != null)
+                    {
+                        <a href="/classes/@(Model.RangeClass.Id).html"
+                           class="list-group-item list-group-item-action">
+                            → Go to Range Type
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Другие свойства того же домена -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Другие свойства класса @Model.Property.Domain.Id</h6>
+            </div>
+            <div class="card-body">
+                @{
+                    var otherProperties = Model.Property.Domain.Properties.Values
+                        .Where(p => p.Id != Model.Property.Id)
+                        .Take(5)
+                        .ToList();
+                }
+
+                @if (otherProperties.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var prop in otherProperties)
+                        {
+                            <a href="/properties/@(prop.Id).html"
+                               class="list-group-item list-group-item-action py-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>@prop.Id</span>
+                                    <small class="text-muted">@prop.Range</small>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No other properties in this class.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

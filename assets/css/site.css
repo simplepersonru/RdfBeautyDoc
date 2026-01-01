@@ -1,0 +1,108 @@
+/* Дополнительные стили для всех шаблонов */
+.search-highlight {
+    background-color: #fff3cd !important;
+    border-left: 3px solid #ffc107 !important;
+    transition: all 0.3s ease;
+}
+
+/* Стили для бейджей типов */
+.badge-class {
+    background-color: #0d6efd !important;
+}
+
+.badge-property {
+    background-color: #198754 !important;
+}
+
+.badge-enum {
+    background-color: #6f42c1 !important;
+}
+
+.badge-primitive {
+    background-color: #fd7e14 !important;
+}
+
+.badge-datatype {
+    background-color: #20c997 !important;
+}
+
+/* Кастомные цвета */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+/* Карточки */
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+/* Диаграммы */
+.diagram-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+}
+
+    .diagram-container svg {
+        max-width: 100%;
+        height: auto;
+    }
+
+/* Поиск в списках */
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Утилиты */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Адаптивные таблицы */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Навигация */
+.navbar-nav .nav-link {
+    position: relative;
+}
+
+    .navbar-nav .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #fff;
+    }

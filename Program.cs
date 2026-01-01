@@ -16,7 +16,6 @@ namespace RdfsBeautyDoc
 			// 2. Создаем генератор
 			var generator = new SiteGenerator(
 				data: classes,
-				templatePath: "templates",
 				outputPath: "output");
 
 			// 3. Генерируем сайт

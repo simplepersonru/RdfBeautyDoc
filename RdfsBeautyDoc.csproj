@@ -19,6 +19,9 @@
 		<None Update="templates\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None  Update="assets\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None >
 	</ItemGroup>
 
 </Project>

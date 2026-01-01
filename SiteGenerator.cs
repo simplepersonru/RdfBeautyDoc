@@ -1,235 +1,294 @@
 ﻿using RazorLight;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using static System.Collections.Specialized.BitVector32;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RdfsBeautyDoc
 {
-	internal class SiteGenerator
-	{
-		private readonly RazorLightEngine _engine;
-		private readonly Dictionary<string, Class> _data;
-		private readonly List<Class> _classes = new();
-		private readonly List<Property> _properties = new();
-		private readonly string _templatePath;
-		private readonly string _outputPath;
+    internal class SiteGenerator
+    {
+        private readonly RazorLightEngine _engine;
+        private readonly Dictionary<string, Class> _data;
+        private readonly List<Class> _classes;
+        private readonly List<Class> _enums;
+        private readonly List<Class> _primitives;
+        private readonly List<Class> _dataTypes;
+        private readonly List<Property> _properties;
+        private readonly string _templatePath;
+        private readonly string _outputPath;
 
-		public SiteGenerator(Dictionary<string, Class> data, string templatePath, string outputPath)
-		{
-			_data = data;
-			_templatePath = templatePath;
-			_outputPath = outputPath;
+        public SiteGenerator(Dictionary<string, Class> data, string outputPath)
+        {
+            _data = data;
+            _outputPath = outputPath;
 
-			// Настраиваем RazorLight для работы с файлами
-			_engine = new RazorLightEngineBuilder()
-				.UseFileSystemProject(Path.Combine(Directory.GetCurrentDirectory(), "templates")) 
-				.UseMemoryCachingProvider()
-				.Build();
+            // Настраиваем RazorLight для работы с файлами
+            _engine = new RazorLightEngineBuilder()
+                .UseFileSystemProject(Path.Combine(Directory.GetCurrentDirectory(), "templates"))
+                .UseMemoryCachingProvider()
+                .Build();
 
-			_classes = _data.Values
-				.Where(x => x.Stereotype == Stereotype.Class)
-				.ToList();
+            // Разделяем данные по стереотипам
+            _classes = data.Values
+                .Where(x => x.Stereotype == Stereotype.Class)
+                .ToList();
 
-			foreach (var cls in _classes)
-				foreach (var prop in cls.Properties)
-					_properties.Add(prop.Value);
+            _enums = data.Values
+                .Where(x => x.Stereotype == Stereotype.Enum)
+                .ToList();
 
-			// Создаем структуру папок
-			Directory.CreateDirectory(outputPath);
-			Directory.CreateDirectory(Path.Combine(outputPath, "classes"));
-			Directory.CreateDirectory(Path.Combine(outputPath, "properties"));
-			Directory.CreateDirectory(Path.Combine(outputPath, "enums"));
-			Directory.CreateDirectory(Path.Combine(outputPath, "assets"));
-			Directory.CreateDirectory(Path.Combine(outputPath, "assets", "css"));
-			Directory.CreateDirectory(Path.Combine(outputPath, "assets", "js"));
-		}
+            _primitives = data.Values
+                .Where(x => x.Stereotype == Stereotype.Primitive)
+                .ToList();
 
-		public async Task GenerateAsync()
-		{
-			// Копируем статические файлы
-			await CopyAssetsAsync();
+            _dataTypes = data.Values
+                .Where(x => x.Stereotype == Stereotype.DataType)
+                .ToList();
 
-			// Генерируем данные для поиска
-			await GenerateSearchIndexAsync();
+            // Собираем все свойства
+            _properties = data.Values
+                .Where(x => x.Stereotype == Stereotype.Class)
+                .SelectMany(x => x.Properties.Values)
+                .ToList();
 
-			// Главная страница
-			await GenerateIndexAsync();
+            // Создаем структуру папок
+            CreateOutputDirectories();
 
-			// Страница со списком всех классов
-			//await GenerateClassListAsync();
+        }
 
-			// Страницы отдельных классов
-			foreach (var cls in _classes)
-			{
-				await GenerateClassPageAsync(cls);
-			}
+        private void CreateOutputDirectories()
+        {
+            Directory.CreateDirectory(_outputPath);
+            Directory.CreateDirectory(Path.Combine(_outputPath, "classes"));
+            Directory.CreateDirectory(Path.Combine(_outputPath, "properties"));
+            Directory.CreateDirectory(Path.Combine(_outputPath, "enums"));
+            Directory.CreateDirectory(Path.Combine(_outputPath, "primitives"));
+            Directory.CreateDirectory(Path.Combine(_outputPath, "datatypes"));
+            Directory.CreateDirectory(Path.Combine(_outputPath, "assets"));
+            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "js"));
+            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "css"));
+        }
 
-			// Страницы свойств
-			foreach (var prop in _properties)
-			{
-				await GeneratePropertyPageAsync(prop);
-			}
-		}
+        public async Task GenerateAsync()
+        {
+            // Генерируем данные для поиска
+            await GenerateSearchIndexAsync();
 
-		private async Task CopyAssetsAsync()
-		{
-			// Создаем минимальный CSS если нет
-			string defaultCss = @"/* site.css */
-                body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-                .class-card { transition: all 0.2s; }
-                .class-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-                .diagram-container { background: #f8f9fa; padding: 1rem; }
-                .breadcrumb { background: transparent; padding: 0; }";
-			await File.WriteAllTextAsync(
-				Path.Combine(_outputPath, "assets", "css", "site.css"),
-				defaultCss);
-		}
+            // Главная страница
+            await GenerateIndexAsync();
 
-		private async Task GenerateSearchIndexAsync()
-		{
-			var searchData = new
-			{
-				Classes = _classes.Select(c => new
-				{
-					id = c.Id,
-					name = c.Label,
-					url = $"/classes/{c.Id}.html",
-					description = c.Comment
-				}),
-				Properties = _properties.Select(p => new
-				{
-					id = p.Id,
-					name = p.Label,
-					url = $"/properties/{p.Id}.html",
-					description = ""
-				})
-			};
+            // Страница со списками
+            await GeneratePropertyListAsync();
+            await GenerateClassListAsync(Stereotype.Class);
+            await GenerateClassListAsync(Stereotype.Enum);
+            await GenerateClassListAsync(Stereotype.Primitive);
+            await GenerateClassListAsync(Stereotype.DataType);
 
-			string json = JsonSerializer.Serialize(searchData, new JsonSerializerOptions
-			{
-				WriteIndented = true,
-				PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-			});
+            // Страницы объектов
+            foreach (var cls in _data.Values)
+            {
+                await GenerateClassPageAsync(cls);
+            }
+        }
 
-			await WriteOutputAsync("assets/search-index.json", json);
-		}
+        private string stereotype(Stereotype val)
+        {
+            return val switch
+            {
+                Stereotype.DataType => "datatypes",
+                Stereotype.Enum => "enums",
+                Stereotype.Class => "classes",
+                Stereotype.Primitive => "primitives",
+            };
+        }
 
-		private async Task GenerateIndexAsync()
-		{
-			var model = new IndexViewModel
-			{
-				Title = "RDFS Documentation",
-				Classes = _classes
-					.OrderBy(c => c.Id)
-					.Select(c => new ClassViewModel { Class = c })
-					.Take(20)
-					.ToList(),
-				Properties = _properties
-					.OrderBy(p => p.Id)
-					.Take(20)
-					.ToList()
-			};
+        private async Task GenerateClassPageAsync(Class cls)
+        {
+            var properties = _properties.Where(p => p.Domain.Id == cls.Id).ToList();
+            var usedInClasses = _properties
+                .Where(p => p.Range == cls.Id)
+                .Select(p => p.Domain)
+                .DistinctBy(c => c.Id)
+                .ToList();
 
-			string html = await _engine.CompileRenderAsync("Index.cshtml", model);
-			await WriteOutputAsync("index.html", html);
-		}
+            var parentClasses = cls.SubClass != null && _data.TryGetValue(cls.SubClass.Id, out var parent)
+                ? new List<Class> { parent }
+                : new List<Class>();
 
-		private async Task GenerateClassListAsync()
-		{
-			var model = new
-			{
-				Title = "All Classes",
-				Classes = _classes
-					.OrderBy(c => c.Id)
-					.ToList(),
-				Breadcrumbs = new[]
-				{
-				new { Name = "Home", Url = "/index.html" },
-				new { Name = "Classes", Url = "/classes/index.html" }
-			}
-			};
+            var childClasses = _classes.Where(c => c.SubClass?.Id == cls.Id).ToList();
 
-			string html = await _engine.CompileRenderAsync("ClassList.cshtml", model);
-			await WriteOutputAsync("classes/index.html", html);
-		}
 
-		private async Task GenerateClassPageAsync(Class cls)
-		{
-			var model = new ClassViewModel
-			{
-				Title = cls.Label,
-				Class = cls,
-				Properties = _properties,
-
-				UsedInClasses = _properties
-					.Where(p => p.Range == cls.Id)
-					.Select(p => p.Domain)
-					.Where(c => c != null)
-					.DistinctBy(c => c.Id)
-					.ToList(),
-
+            var model = new ClassViewModel
+            {
+                Title = cls.Label,
+                Class = cls,
+                Properties = properties,
+                ParentClasses = parentClasses,
+                ChildClasses = childClasses,
+                UsedInClasses = usedInClasses,
+                CurrentPage = cls.StereoPath,
                 ClassCount = _classes.Count,
                 PropertyCount = _properties.Count,
-				AllClasses = _classes,
-				ChildClasses = _classes
-					.Where(c => c.SubClass?.Id == cls.Id)
-					.ToList(),
-                CurrentPage = "classes",
-
-
-                //UsedIn = usedIn,
-                //ParentClass = cls.SubClass,
-                //ChildClasses = _classes
-                //	.Where(c => c.SubClass != null 
-                //				&& c.SubClass.Id == cls.Id)
-                //	.ToList(),
-                //Breadcrumbs = new[]
-                //{
-                //new { Name = "Home", Url = "/index.html" },
-                //new { Name = "Classes", Url = "/classes/index.html" },
-                //new { Name = cls.Label, Url = $"/classes/{cls.Id}.html" }
+                EnumCount = _enums.Count,
+                PrimitiveCount = _primitives.Count,
+                DataTypeCount = _dataTypes.Count,
+                AllClasses = _classes,
+                AllEnums = _enums,
+                AllPrimitives = _primitives,
+                AllDataTypes = _dataTypes,
+                Breadcrumbs = new List<BreadcrumbItem>
+                {
+                    new() { Name = "Home", Url = "/index.html" },
+                    new() { Name = "Classes", Url = $"/{cls.StereoPath}/_index.html" },
+                    new() { Name = cls.Id, Url = $"/{cls.StereoPath}/{cls.Id}.html" }
+                }
             };
 
-			string html = await _engine.CompileRenderAsync("Class.cshtml", model);
-			await WriteOutputAsync($"classes/{cls.Id}.html", html);
-		}
+            string html = await _engine.CompileRenderAsync("Class.cshtml", model);
 
-		private async Task GeneratePropertyPageAsync(Property prop)
-		{
-			var rangeClass = _data.TryGetValue(prop.Range, out var rc) ? rc : null;
-			if (rangeClass == null)
-				return;
 
-			var model = new
-			{
-				Title = prop.Label,
-				Property = prop,
-				DomainClass = prop.Domain,
-				RangeClass = rangeClass,
-				Breadcrumbs = new[]
-				{
-				new { Name = "Home", Url = "/index.html" },
-				new { Name = "Properties", Url = "/properties/index.html" },
-				new { Name = prop.Label, Url = $"/properties/{prop.Id}.html" }
-			}
-			};
+            await WriteOutputAsync($"{cls.StereoPath}/{cls.Id}.html", html);
+        }
 
-			string html = await _engine.CompileRenderAsync("Property.cshtml", model);
-			await WriteOutputAsync($"properties/{prop.Id}.html", html);
-		}
+        private async Task GenerateSearchIndexAsync()
+        {
+            // 1. Создаем JSON индекс для поиска
+            var searchData = new
+            {
+                Classes = _data.Values.Select(c => new
+                {
+                    id = c.Id,
+                    name = c.Label,
+                    url = $"/{c.StereoPath}/{c.Id}.html",
+                    type = "class",
+                    description = c.Comment,
+                    stereotype = c.Stereotype.ToString()
+                }),
+                Properties = _properties.Select(p => new
+                {
+                    id = p.Id,
+                    name = p.Label,
+                    url = $"/properties/{p.Id}.html",
+                    type = "property",
+                    description = $"{p.Domain.Id} → {p.Range}",
+                    domain = p.Domain.Id,
+                    range = p.Range
+                }),
+            };
 
-		private async Task WriteOutputAsync(string relativePath, string content)
-		{
-			string fullPath = Path.Combine(_outputPath, relativePath);
-			string? directory = Path.GetDirectoryName(fullPath);
+            string json = JsonSerializer.Serialize(searchData, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
 
-			if (!string.IsNullOrEmpty(directory))
-				Directory.CreateDirectory(directory);
+            await WriteOutputAsync("assets/search-index.json", json);
 
-			await File.WriteAllTextAsync(fullPath, content, Encoding.UTF8);
-		}
-	}
+            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "js"));
+            File.Copy(Path.Combine("assets", "js", "search.js"),
+                      Path.Combine(_outputPath, "assets", "js", "search.js"), 
+                      overwrite: true);
+
+            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "css"));
+            File.Copy(Path.Combine("assets", "css", "site.css"),
+                      Path.Combine(_outputPath, "assets", "css", "site.css"),
+                      overwrite: true);
+        }
+
+        private async Task GenerateIndexAsync()
+        {
+            var model = new IndexViewModel
+            {
+                Title = "RDFS Documentation",
+                RecentClasses = _classes.Take(10).ToList(),
+                RecentProperties = _properties.Take(10).ToList(),
+                CurrentPage = "home",
+                ClassCount = _classes.Count,
+                PropertyCount = _properties.Count,
+                EnumCount = _enums.Count,
+                PrimitiveCount = _primitives.Count,
+                DataTypeCount = _dataTypes.Count,
+                AllClasses = _classes,
+                AllEnums = _enums,
+                AllPrimitives = _primitives,
+                AllDataTypes = _dataTypes
+            };
+
+            string html = await _engine.CompileRenderAsync("Index.cshtml", model);
+            await WriteOutputAsync("index.html", html);
+        }
+
+        private async Task GenerateClassListAsync(Stereotype type)
+        {
+            var model = new ClassListViewModel
+            {
+                Title = "All Classes",
+                Classes = _data.Values
+                            .Where(c => c.Stereotype == type)
+                            .OrderBy(c => c.Id)
+                            .ToList(),
+                CurrentPage = stereotype(type),
+                ClassCount = _classes.Count,
+                PropertyCount = _properties.Count,
+                EnumCount = _enums.Count,
+                PrimitiveCount = _primitives.Count,
+                DataTypeCount = _dataTypes.Count,
+                Breadcrumbs = new List<BreadcrumbItem>
+                {
+                    new() { Name = "Home", Url = "/index.html" },
+                    new() { Name = "Classes", Url = $"/{stereotype(type)}/_index.html" }
+                }
+            };
+
+            string html = await _engine.CompileRenderAsync("ClassList.cshtml", model);
+            await WriteOutputAsync($"{stereotype(type)}/_index.html", html);
+        }
+
+        private async Task GeneratePropertyListAsync()
+        {
+            var model = new PropertyListViewModel
+            {
+                Title = "All Properties",
+                Properties = _properties.OrderBy(p => p.Id).ToList(),
+                CurrentPage = "properties",
+                ClassCount = _classes.Count,
+                PropertyCount = _properties.Count,
+                EnumCount = _enums.Count,
+                PrimitiveCount = _primitives.Count,
+                DataTypeCount = _dataTypes.Count,
+                Breadcrumbs = new List<BreadcrumbItem>
+                {
+                    new() { Name = "Home", Url = "/index.html" },
+                    new() { Name = "Properties", Url = "/properties/_index.html" }
+                }
+            };
+
+            string html = await _engine.CompileRenderAsync("PropertyList.cshtml", model);
+            await WriteOutputAsync("properties/_index.html", html);
+        }
+
+        private async Task WriteOutputAsync(string relativePath, string content)
+        {
+            string fullPath = Path.Combine(_outputPath, relativePath);
+            string? directory = Path.GetDirectoryName(fullPath);
+
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            await File.WriteAllTextAsync(fullPath, content, Encoding.UTF8);
+        }
+    }
 }
