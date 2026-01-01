@@ -6,16 +6,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@Model.Title</title>
+    <title>@Model.Title - RDFS Docs</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-nav .nav-link.active {
+            font-weight: bold;
+            color: #fff !important;
+        }
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0.75rem 0;
+            margin-bottom: 1rem;
+        }
+        .diagram-container {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-4">
-        @RenderBody()
-    </div>
+    <!-- Основная навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/index.html">
+                📚 RDFS Documentation
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link @(Model.CurrentPage == "home" ? "active" : "")"
+                           href="/index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(Model.CurrentPage == "classes" ? "active" : "")"
+                           href="/classes/index.html">Classes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(Model.CurrentPage == "properties" ? "active" : "")"
+                           href="/properties/index.html">Properties</a>
+                    </li>
+                </ul>
 
-    <footer class="mt-5 pt-3 border-top text-center text-muted">
-        <small>Generated: @Model.Generated.ToString("yyyy-MM-dd HH:mm")</small>
+                <!-- Поиск -->
+                <form class="d-flex" role="search" onsubmit="return false;">
+                    <input class="form-control me-2" type="search"
+                           placeholder="Search..." id="searchInput">
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Хлебные крошки -->
+    @if (Model.Breadcrumbs?.Any() == true)
+    {
+        <nav aria-label="breadcrumb" class="bg-light py-2">
+            <div class="container">
+                <ol class="breadcrumb mb-0">
+                    @foreach (var item in Model.Breadcrumbs)
+                    {
+                        <li class="breadcrumb-item">
+                            <a href="@item.Url">@item.Name</a>
+                        </li>
+                    }
+                    <li class="breadcrumb-item active" aria-current="page">
+                        @Model.Title
+                    </li>
+                </ol>
+            </div>
+        </nav>
+    }
+
+    <!-- Основное содержимое -->
+    <main class="container my-4">
+        @RenderBody()
+    </main>
+
+    <!-- Футер -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>RDFS Documentation</h5>
+                    <p>Generated from RDF/XML schema files</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-1">
+                        <strong>Statistics:</strong>
+                        @Model.ClassCount classes,
+                        @Model.PropertyCount properties
+                    </p>
+                    <p class="text-muted mb-0">
+                        Generated: @Model.Generated.ToString("yyyy-MM-dd HH:mm")
+                    </p>
+                </div>
+            </div>
+        </div>
     </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Простой поиск -->
+    <script>
+        document.getElementById('searchInput')?.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            // Простая реализация поиска по текущей странице
+            document.querySelectorAll('.searchable').forEach(el => {
+                const text = el.textContent.toLowerCase();
+                el.style.backgroundColor = text.includes(query) ? '#fff3cd' : '';
+            });
+        });
+    </script>
 </body>
 </html>

@@ -2,79 +2,204 @@
 <!-- templates/Class.cshtml -->
 @model ClassViewModel
 @{
-    Layout = "templates/_Layout.cshtml";
+    Layout = "_Layout.cshtml";
 }
 
-<h1>@Model.Class.Id</h1>
-<p class="lead">@Model.Class.Label</p>
+<!-- Заголовок класса -->
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">@Model.Class.Id</h1>
+        <p class="lead">@Model.Class.Label</p>
 
-@if (!string.IsNullOrEmpty(Model.Class.Comment))
-{
-    <div class="alert alert-info">
-        @Model.Class.Comment
+        @if (!string.IsNullOrEmpty(Model.Class.Comment))
+        {
+            <div class="alert alert-info">
+                @Model.Class.Comment
+            </div>
+        }
     </div>
-}
+</div>
 
-<!-- ��������� -->
+<!-- Диаграмма -->
 @if (!string.IsNullOrEmpty(Model.Class.SvgDiagram))
 {
-    <div class="mb-4">
-        @Html.Raw(Model.Class.SvgDiagram)
+    <div class="diagram-container mb-4">
+        <h4>Class Diagram</h4>
+        @(new Microsoft.AspNetCore.Html.HtmlString(Model.Class.SvgDiagram))
     </div>
 }
 
+<!-- Основное содержимое -->
 <div class="row">
-    <div class="col-md-8">
-        <!-- �������� -->
+    <!-- Левая колонка: свойства класса -->
+    <div class="col-lg-8">
         @if (Model.Properties.Any())
         {
-            <h3>Properties</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var prop in Model.Properties)
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Properties</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Type</th>
+                                    <th>Multiplicity</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var prop in Model.Properties)
+                                {
+                                    <tr class="searchable">
+                                        <td>
+                                            <a href="/properties/@(prop.Id).html" class="text-decoration-none">
+                                                <strong>@prop.Id</strong>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            @if (Model.AllClasses.FirstOrDefault(c => c.Id == prop.Range) != null)
+                                            {
+                                                <a href="/classes/@(prop.Range).html" class="badge bg-primary text-decoration-none">
+                                                    @prop.Range
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <code class="text-muted">@prop.Range</code>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(prop.Multiplicity))
+                                            {
+                                                <span class="badge bg-info">@prop.Multiplicity</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">@prop.Label</small>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                This class has no properties defined.
+            </div>
+        }
+
+        <!-- Иерархия -->
+        @if (Model.ParentClasses.Any() || Model.ChildClasses.Any())
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Class Hierarchy</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Родительские классы -->
+                    @if (Model.ParentClasses.Any())
                     {
-                        <tr>
-                            <td>
-                                <a href="/properties/@(prop.Id).html">@prop.Id</a>
-                            </td>
-                            <td>
-                                @if (Model.AllClasses.FirstOrDefault(c => c.Id == prop.Range) != null)
+                        <div class="mb-3">
+                            <h6>Inherits from:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var parent in Model.ParentClasses)
                                 {
-                                    <a href="/classes/@(prop.Range).html">@prop.Range</a>
+                                    <a href="/classes/@(parent.Id).html"
+                                       class="btn btn-outline-primary btn-sm">
+                                        @parent.Id
+                                    </a>
                                 }
-                                else
-                                {
-                                    <code>@prop.Range</code>
-                                }
-                            </td>
-                            <td>@prop.Label</td>
-                        </tr>
+                            </div>
+                        </div>
                     }
-                </tbody>
-            </table>
+
+                    <!-- Дочерние классы -->
+                    @if (Model.ChildClasses.Any())
+                    {
+                        <div>
+                            <h6>Extended by:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var child in Model.ChildClasses)
+                                {
+                                    <a href="/classes/@(child.Id).html"
+                                       class="btn btn-outline-success btn-sm">
+                                        @child.Id
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         }
     </div>
 
-    <div class="col-md-4">
-        <!-- ��������� -->
-        <div class="card">
+    <!-- Правая колонка: быстрые ссылки -->
+    <div class="col-lg-4">
+        <!-- Быстрые ссылки -->
+        <div class="card mb-3">
             <div class="card-header">
-                Navigation
+                <h6 class="mb-0">Quick Links</h6>
             </div>
             <div class="card-body">
-                <div class="list-group">
-                    @foreach (var other in Model.AllClasses.Take(10))
+                <div class="list-group list-group-flush">
+                    <a href="/index.html" class="list-group-item list-group-item-action">
+                        ← Back to Home
+                    </a>
+                    <a href="/classes/index.html" class="list-group-item list-group-item-action">
+                        📚 All Classes
+                    </a>
+                    <a href="/properties/index.html" class="list-group-item list-group-item-action">
+                        🔗 All Properties
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Где используется -->
+        @if (Model.UsedInClasses.Any())
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Used In</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-2">This class is used as range in:</p>
+                    <div class="list-group list-group-flush">
+                        @foreach (var usedIn in Model.UsedInClasses)
+                        {
+                            <a href="/classes/@(usedIn.Id).html"
+                               class="list-group-item list-group-item-action py-2">
+                                @usedIn.Id
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Связанные классы -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Related Classes</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    @foreach (var related in Model.AllClasses
+                                        .Where(c => c.Id != Model.Class.Id)
+                                        .Take(5)
+                                        .OrderBy(c => c.Id))
                     {
-                        <a href="/classes/@(other.Id).html"
-                           class="list-group-item list-group-item-action @(other.Id == Model.Class.Id ? "active" : "")">
-                            @other.Id
+                        <a href="/classes/@(related.Id).html"
+                           class="list-group-item list-group-item-action py-2">
+                            @related.Id
                         </a>
                     }
                 </div>

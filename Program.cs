@@ -10,7 +10,7 @@ namespace RdfsBeautyDoc
 	{
 		static void Main(string[] args)
 		{
-			string path = "C:\\Users\\ivavp\\source\\repos\\scada\\scada\\src\\plugins\\calcmodules\\dmsutils\\cimparser\\scripts\\ck-rdf2.xml";
+			string path = "C:\\reposroot\\redkit-lab\\dmsutils\\cimparser\\scripts\\ck-rdf.xml";
 			var classes = XmlParse.Work(path);
 
 			// 2. Создаем генератор

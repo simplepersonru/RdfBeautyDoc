@@ -40,7 +40,7 @@ namespace RdfsBeautyDoc
 			// Создаем структуру папок
 			Directory.CreateDirectory(outputPath);
 			Directory.CreateDirectory(Path.Combine(outputPath, "classes"));
-			Directory.CreateDirectory(Path.Combine(outputPath, "Properties"));
+			Directory.CreateDirectory(Path.Combine(outputPath, "properties"));
 			Directory.CreateDirectory(Path.Combine(outputPath, "enums"));
 			Directory.CreateDirectory(Path.Combine(outputPath, "assets"));
 			Directory.CreateDirectory(Path.Combine(outputPath, "assets", "css"));
@@ -158,29 +158,40 @@ namespace RdfsBeautyDoc
 
 		private async Task GenerateClassPageAsync(Class cls)
 		{
-			var usedIn = _properties
-				.Where(p => p.Range == cls.Id)
-				.Select(p => p.Domain)
-				.Where(c => c != null)
-				.ToList();
-
 			var model = new ClassViewModel
 			{
 				Title = cls.Label,
 				Class = cls,
 				Properties = _properties,
-				//UsedIn = usedIn,
-				//ParentClass = cls.SubClass,
-				//ChildClasses = _classes
-				//	.Where(c => c.SubClass != null 
-				//				&& c.SubClass.Id == cls.Id)
-				//	.ToList(),
-				//Breadcrumbs = new[]
-				//{
-				//new { Name = "Home", Url = "/index.html" },
-				//new { Name = "Classes", Url = "/classes/index.html" },
-				//new { Name = cls.Label, Url = $"/classes/{cls.Id}.html" }
-			};
+
+				UsedInClasses = _properties
+					.Where(p => p.Range == cls.Id)
+					.Select(p => p.Domain)
+					.Where(c => c != null)
+					.DistinctBy(c => c.Id)
+					.ToList(),
+
+                ClassCount = _classes.Count,
+                PropertyCount = _properties.Count,
+				AllClasses = _classes,
+				ChildClasses = _classes
+					.Where(c => c.SubClass?.Id == cls.Id)
+					.ToList(),
+                CurrentPage = "classes",
+
+
+                //UsedIn = usedIn,
+                //ParentClass = cls.SubClass,
+                //ChildClasses = _classes
+                //	.Where(c => c.SubClass != null 
+                //				&& c.SubClass.Id == cls.Id)
+                //	.ToList(),
+                //Breadcrumbs = new[]
+                //{
+                //new { Name = "Home", Url = "/index.html" },
+                //new { Name = "Classes", Url = "/classes/index.html" },
+                //new { Name = cls.Label, Url = $"/classes/{cls.Id}.html" }
+            };
 
 			string html = await _engine.CompileRenderAsync("Class.cshtml", model);
 			await WriteOutputAsync($"classes/{cls.Id}.html", html);

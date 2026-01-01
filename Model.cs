@@ -57,29 +57,35 @@ namespace RdfsBeautyDoc
 		public Dictionary<string, Description> Descriptions { get; set; } = new Dictionary<string, Description>();
 	}
 
-	// Models/ViewModels.cs
-	public class LayoutViewModel
-	{
-		public string Title { get; set; } = "RDFS Documentation";
-		public DateTime Generated { get; set; } = DateTime.Now;
-	}
+    // Models/ViewModels.cs
+    public class LayoutViewModel
+    {
+        public string Title { get; set; } = "RDFS Documentation";
+        public DateTime Generated { get; set; } = DateTime.Now;
+        public List<BreadcrumbItem> Breadcrumbs { get; set; } = new();
+        public string CurrentPage { get; set; } = "home";
+        public int ClassCount { get; set; }
+        public int PropertyCount { get; set; }
+    }
 
-	public class IndexViewModel : LayoutViewModel
+    public class IndexViewModel : LayoutViewModel
 	{
 		public List<ClassViewModel> Classes { get; set; } = new();
 		public List<Property> Properties { get; set; } = new();
 	}
 
-	public class ClassViewModel : LayoutViewModel
-	{
-		required public Class Class { get; set; }
-		public List<Property> Properties { get; set; } = new();
-		public List<Class> ParentClasses { get; set; } = new();
-		public List<Class> AllClasses { get; set; } = new();
-	}
+    public class ClassViewModel : LayoutViewModel
+    {
+        public Class Class { get; set; }
+        public List<Property> Properties { get; set; } = new();
+        public List<Class> AllClasses { get; set; } = new();
+        public List<Class> ParentClasses { get; set; } = new();
+        public List<Class> ChildClasses { get; set; } = new();
+        public List<Class> UsedInClasses { get; set; } = new(); // Где используется этот класс как range
+    }
 
-	// Дополнительные модели для навигации
-	public class BreadcrumbItem
+    // Дополнительные модели для навигации
+    public class BreadcrumbItem
 	{
 		public string Name { get; set; }
 		public string Url { get; set; }
