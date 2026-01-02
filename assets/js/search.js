@@ -39,7 +39,7 @@ function performSearch(query) {
     });
 }
 
-// Обработка ввода в поиске
+// В обработчике DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
@@ -50,19 +50,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     searchInput.addEventListener('input', function (e) {
         clearTimeout(searchTimeout);
-
         searchTimeout = setTimeout(() => {
             const query = e.target.value;
             const results = performSearch(query);
-
-            // Обновляем результаты поиска
             updateSearchResults(results, query);
-        }, 300); // Задержка 300ms
+        }, 300);
     });
 
-    // Закрытие результатов при клике вне
+    // Закрытие при клике вне области
     document.addEventListener('click', function (e) {
         if (!searchResults.contains(e.target) && e.target !== searchInput) {
+            searchResults.classList.add('d-none');
+        }
+    });
+
+    // Закрытие при нажатии Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
             searchResults.classList.add('d-none');
         }
     });
@@ -70,29 +74,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function updateSearchResults(results, query) {
     const searchResults = document.getElementById('searchResults');
-    if (!searchResults) return;
+    const searchInput = document.getElementById('searchInput');
+
+    if (!searchResults || !searchInput) return;
 
     if (results.length === 0 || query.length < 2) {
         searchResults.classList.add('d-none');
         return;
     }
 
-    // Сортируем результаты
+    // Сортируем результаты (оставьте вашу текущую логику сортировки)
     results.sort((a, b) => {
-        // Приоритет: полное совпадение с id
-        const aExactId = a.id.toLowerCase() === query.toLowerCase();
-        const bExactId = b.id.toLowerCase() === query.toLowerCase();
-        if (aExactId && !bExactId) return -1;
-        if (!aExactId && bExactId) return 1;
-
-        // Затем по началу строки
-        const aStartsWith = a.id.toLowerCase().startsWith(query.toLowerCase());
-        const bStartsWith = b.id.toLowerCase().startsWith(query.toLowerCase());
-        if (aStartsWith && !bStartsWith) return -1;
-        if (!aStartsWith && bStartsWith) return 1;
-
-        // Затем по алфавиту
-        return a.id.localeCompare(b.id);
+        // ... ваш текущий код сортировки ...
     });
 
     // Ограничиваем количество результатов
@@ -102,41 +95,35 @@ function updateSearchResults(results, query) {
     let html = '';
 
     displayResults.forEach(result => {
-        const typeIcon = getTypeIcon(result.type);
         const highlightedName = highlightText(result.name, query);
         const highlightedId = highlightText(result.id, query);
 
         html += `
-            <a href="${result.url}" class="list-group-item list-group-item-action">
+            <a href="${result.url}" class="list-group-item list-group-item-action py-2">
                 <div class="d-flex w-100 align-items-center">
-                    <span class="me-2">${typeIcon}</span>
-                    <div class="flex-grow-1">
-                        <div class="fw-bold">${highlightedName}</div>
-                        <small class="text-muted">${highlightedId}</small>
-                        ${result.description ? `<div class="mt-1 small text-truncate">${result.description}</div>` : ''}
+                    <div class="flex-grow-1" style="min-width: 0;">
+                        <div class="fw-bold text-truncate">${highlightedId}</div>
+                        <small class="text-muted text-truncate d-block">${highlightedName}</small>
+                        ${result.description ? `<div class="mt-1 small text-muted text-truncate">${result.description}</div>`
+                                             : ''}
+                        <span class="badge bg-secondary ms-2">${result.type}</span>
                     </div>
-                    <span class="badge bg-secondary">${result.type}</span>
                 </div>
             </a>
         `;
     });
 
     if (results.length > 10) {
-        html += `<div class="list-group-item text-center text-muted">
+        html += `<div class="list-group-item text-center text-muted py-2">
                     ... и еще ${results.length - 10} результатов
                  </div>`;
     }
 
     searchResults.innerHTML = html;
     searchResults.classList.remove('d-none');
-}
 
-function getTypeIcon(type) {
-    const icons = {
-        'class': '📦',
-        'property': '🔗'
-    };
-    return icons[type] || '📄';
+    // Устанавливаем ширину равной ширине input
+    searchResults.style.width = searchInput.offsetWidth + 'px';
 }
 
 function highlightText(text, query) {

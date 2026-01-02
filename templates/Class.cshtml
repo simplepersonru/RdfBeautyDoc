@@ -37,10 +37,6 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Properties (@Model.Properties.Count)</h5>
-                    @if (Model.Properties.Count > 10)
-                    {
-                        <small class="text-muted">Showing first 10 of @Model.Properties.Count</small>
-                    }
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -59,13 +55,13 @@
                                     <tr class="searchable">
                                         <td>
                                             <a href="/properties/@(prop.Id).html" class="text-decoration-none">
-                                                @prop.Id
+                                                @prop.FieldName
                                             </a>
                                         </td>
                                         <td>
                                             @if (prop.RangeClass != null)
                                             {
-                                                <a href="/classes/@(prop.RangeClass.Id).html" class="badge bg-primary text-decoration-none">
+                                                <a href="/@(prop.RangeClass.StereoPath)/@(prop.RangeClass.Id).html" class="badge bg-primary text-decoration-none">
                                                     @prop.Range
                                                 </a>
                                             }
@@ -170,7 +166,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var prop in usedInProperties.Take(10))
+                                @foreach (var prop in usedInProperties)
                                 {
                                     <tr class="searchable">
                                         <td>
@@ -198,14 +194,6 @@
                             </tbody>
                         </table>
                     </div>
-                    @if (usedInProperties.Count > 10)
-                    {
-                        <div class="card-footer text-center">
-                            <small class="text-muted">
-                                Showing first 10 of @usedInProperties.Count properties
-                            </small>
-                        </div>
-                    }
                 </div>
             </div>
         }

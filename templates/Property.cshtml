@@ -16,39 +16,31 @@
             </div>
             <div class="card-body">
                 <dl class="row">
-                    <dt class="col-sm-3">Identifier</dt>
+                    <dt class="col-sm-3">ID</dt>
                     <dd class="col-sm-9"><code>@Model.Property.Id</code></dd>
 
-                    <dt class="col-sm-3">Label</dt>
+                    <dt class="col-sm-3">Подпись</dt>
                     <dd class="col-sm-9">@Model.Property.Label</dd>
 
-                    <dt class="col-sm-3">Domain</dt>
+                    <dt class="col-sm-3">Класс</dt>
                     <dd class="col-sm-9">
-                        <a href="/classes/@(Model.Property.Domain.Id).html" class="text-decoration-none">
+                        <a href="/@(Model.Property.Domain.StereoPath)/@(Model.Property.Domain.Id).html" class="text-decoration-none">
                             <span class="badge bg-primary">@Model.Property.Domain.Id</span>
                         </a>
                         <small class="text-muted d-block mt-1">@Model.Property.Domain.Label</small>
                     </dd>
 
-                    <dt class="col-sm-3">Range</dt>
+                    <dt class="col-sm-3">Тип</dt>
                     <dd class="col-sm-9">
-                        @if (Model.RangeClass != null)
-                        {
-                            <a href="/classes/@(Model.RangeClass.Id).html" class="text-decoration-none">
-                                <span class="badge bg-success">@Model.Property.Range</span>
-                            </a>
-                            <small class="text-muted d-block mt-1">@Model.RangeClass.Label</small>
-                        }
-                        else
-                        {
-                            <code>@Model.Property.Range</code>
-                            <small class="text-muted d-block mt-1">Primitive type</small>
-                        }
+                        <a href="/@(Model.RangeClass.StereoPath)/@(Model.RangeClass.Id).html" class="text-decoration-none">
+                            <span class="badge bg-success">@Model.Property.Range</span>
+                        </a>
+                        <small class="text-muted d-block mt-1">@Model.RangeClass.Label</small>
                     </dd>
 
                     @if (!string.IsNullOrEmpty(Model.Property.Multiplicity))
                     {
-                        <dt class="col-sm-3">Multiplicity</dt>
+                        <dt class="col-sm-3">Количество</dt>
                         <dd class="col-sm-9">
                             <span class="badge bg-info">@Model.Property.Multiplicity</span>
                         </dd>
@@ -56,9 +48,11 @@
 
                     @if (!string.IsNullOrEmpty(Model.Property.InverseRoleName))
                     {
-                        <dt class="col-sm-3">Inverse Role</dt>
+                        <dt class="col-sm-3">Обратное свойство</dt>
                         <dd class="col-sm-9">
-                            <code>@Model.Property.InverseRoleName</code>
+                            <a href="/properties/@(Model.Property.InverseRoleName).html" class="text-decoration-none">
+                                <code>@Model.Property.InverseRoleName</code>
+                            </a>
                         </dd>
                     }
                 </dl>
@@ -70,11 +64,11 @@
         <!-- Навигация -->
         <div class="card mb-3">
             <div class="card-header">
-                <h6 class="mb-0">Navigation</h6>
+                <h6 class="mb-0">Навигация</h6>
             </div>
             <div class="card-body">
                 <div class="list-group list-group-flush">
-                    <a href="/classes/@(Model.Property.Domain.Id).html"
+                    <a href="/@(Model.Property.Domain.StereoPath)/@(Model.Property.Domain.Id).html"
                        class="list-group-item list-group-item-action">
                         ← Back to Domain Class
                     </a>
@@ -84,7 +78,7 @@
                     </a>
                     @if (Model.RangeClass != null)
                     {
-                        <a href="/classes/@(Model.RangeClass.Id).html"
+                        <a href="/@(Model.RangeClass.StereoPath)/@(Model.RangeClass.Id).html"
                            class="list-group-item list-group-item-action">
                             → Go to Range Type
                         </a>
@@ -101,9 +95,8 @@
             <div class="card-body">
                 @{
                     var otherProperties = Model.Property.Domain.Properties.Values
-                        .Where(p => p.Id != Model.Property.Id)
-                        .Take(5)
-                        .ToList();
+                    .Where(p => p.Id != Model.Property.Id)
+                    .ToList();
                 }
 
                 @if (otherProperties.Any())
@@ -114,7 +107,7 @@
                             <a href="/properties/@(prop.Id).html"
                                class="list-group-item list-group-item-action py-2">
                                 <div class="d-flex justify-content-between">
-                                    <span>@prop.Id</span>
+                                    <span>@prop.FieldName</span>
                                     <small class="text-muted">@prop.Range</small>
                                 </div>
                             </a>
@@ -123,7 +116,7 @@
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No other properties in this class.</p>
+                    <p class="text-muted mb-0">У класса нет других свойств</p>
                 }
             </div>
         </div>

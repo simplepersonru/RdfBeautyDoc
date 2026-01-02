@@ -6,6 +6,7 @@
 	}
 	public class Property : Identified
 	{
+		public string FieldName { get; set; } = string.Empty;
 		public string Label { get; set; } = string.Empty;
 		/// <summary>
 		/// Класс, которому принадлежит атрибут

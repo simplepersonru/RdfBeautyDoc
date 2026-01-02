@@ -57,9 +57,10 @@ namespace RdfsBeautyDoc
 					Property prop = new Property
 					{
 						Domain = domainClass,
-						Id = splitName.Last(),
+						Id = el.FirstAttribute.Value,
+						FieldName = splitName.Last(),
 					};
-					domainClass.Properties.Add(prop.Id, prop);
+                    domainClass.Properties.Add(prop.Id, prop);
 
 					foreach (var child in el.Elements())
 					{

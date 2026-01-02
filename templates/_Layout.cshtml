@@ -56,10 +56,17 @@
                 </ul>
 
                 <!-- Поиск -->
-                <div class="position-relative">
-                    <input type="search" class="form-control"
-                           id="searchInput" placeholder="Search...">
-                    <div id="searchResults" class="list-group d-none position-absolute w-100"></div>
+                <div class="position-relative mx-3 flex-grow-1">
+                    <!-- Контейнер в 2 раза шире, центрированный -->
+                    <div class="position-relative" style="width: 100%;">
+                        <input type="search" class="form-control"
+                               id="searchInput" placeholder="Search..."
+                               autocomplete="off">
+                        <div id="searchResults"
+                             class="list-group d-none position-absolute top-100 start-0 end-0 mt-1 shadow-lg rounded"
+                             style="z-index: 1050;">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

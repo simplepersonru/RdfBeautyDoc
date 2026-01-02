@@ -22,7 +22,6 @@
             <tr>
                 <th>Property</th>
                 <th>Label</th>
-                <th>Domain</th>
                 <th>Range</th>
                 <th>Multiplicity</th>
             </tr>
@@ -49,14 +48,9 @@
                         }
                     </td>
                     <td>
-                        <a href="/classes/@(prop.Domain.Id).html" class="badge bg-primary text-decoration-none">
-                            @prop.Domain.Id
-                        </a>
-                    </td>
-                    <td>
                         @if (prop.RangeClass != null)
                         {
-                            <a href="/classes/@(prop.RangeClass.Id).html" class="badge bg-success text-decoration-none">
+                            <a href="/@(prop.RangeClass.StereoPath)/@(prop.RangeClass.Id).html" class="badge bg-success text-decoration-none">
                                 @prop.Range
                             </a>
                         }

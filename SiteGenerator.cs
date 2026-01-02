@@ -102,6 +102,39 @@ namespace RdfsBeautyDoc
             {
                 await GenerateClassPageAsync(cls);
             }
+            // Страницы свойств
+            foreach (var prop in _properties)
+            {
+                await GeneratePropertyPageAsync(prop);
+            }
+        }
+
+        private async Task GeneratePropertyPageAsync(Property prop)
+        {
+            var rangeClass = _data.TryGetValue(prop.Range, out var rc) ? rc : null;
+
+            var model = new PropertyViewModel
+            {
+                Title = prop.Label,
+                Property = prop,
+                DomainClass = prop.Domain,
+                RangeClass = rangeClass,
+                CurrentPage = "properties",
+                ClassCount = _classes.Count,
+                PropertyCount = _properties.Count,
+                EnumCount = _enums.Count,
+                PrimitiveCount = _primitives.Count,
+                DataTypeCount = _dataTypes.Count,
+                Breadcrumbs = new List<BreadcrumbItem>
+                {
+                    new() { Name = "Home", Url = "/index.html" },
+                    new() { Name = "Properties", Url = "/properties/_index.html" },
+                    new() { Name = prop.Id, Url = $"/properties/{prop.Id}.html" }
+                }
+            };
+
+            string html = await _engine.CompileRenderAsync("Property.cshtml", model);
+            await WriteOutputAsync($"properties/{prop.Id}.html", html);
         }
 
         private string stereotype(Stereotype val)
