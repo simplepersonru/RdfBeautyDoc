@@ -33,7 +33,7 @@
                     <dt class="col-sm-3">Тип</dt>
                     <dd class="col-sm-9">
                         <a href="/@(Model.RangeClass.StereoPath)/@(Model.RangeClass.Id).html" class="text-decoration-none">
-                            <span class="badge bg-success">@Model.Property.Range</span>
+                            <span class="badge @(Model.RangeClass.BadgeClass)">@Model.Property.Range</span>
                         </a>
                         <small class="text-muted d-block mt-1">@Model.RangeClass.Label</small>
                     </dd>
@@ -70,17 +70,17 @@
                 <div class="list-group list-group-flush">
                     <a href="/@(Model.Property.Domain.StereoPath)/@(Model.Property.Domain.Id).html"
                        class="list-group-item list-group-item-action">
-                        ← Back to Domain Class
+                        ← Назад к классу
                     </a>
                     <a href="/properties/_index.html"
                        class="list-group-item list-group-item-action">
-                        📋 All Properties
+                        📋 Все свойства
                     </a>
                     @if (Model.RangeClass != null)
                     {
                         <a href="/@(Model.RangeClass.StereoPath)/@(Model.RangeClass.Id).html"
                            class="list-group-item list-group-item-action">
-                            → Go to Range Type
+                            → Перейти к типу
                         </a>
                     }
                 </div>

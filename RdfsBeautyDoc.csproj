@@ -24,4 +24,8 @@
 		</None >
 	</ItemGroup>
 
+	<Target Name="CleanOutput" BeforeTargets="Build">
+		<Delete Files="$(OutDir)\output\**" />
+	</Target>
+
 </Project>

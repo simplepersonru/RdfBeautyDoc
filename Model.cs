@@ -32,7 +32,8 @@
 		Class,
 		Enum, 
 		DataType,
-		Primitive
+		Primitive,
+		All
 	}
 
 	public class Class : Identified
@@ -49,7 +50,20 @@
 			Stereotype.Enum => "enums",
 			Stereotype.Class => "classes",
 			Stereotype.Primitive => "primitives",
+			Stereotype.All => "entities",
 		};
+
+		public static string BadgeClassStatic(Stereotype stereotype) => stereotype switch
+		{
+            Stereotype.Class => "badge-class",
+            Stereotype.Enum => "badge-enum",
+            Stereotype.Primitive => "badge-primitive",
+            Stereotype.DataType => "badge-datatype",
+            _ => "badge-secondary"
+        };
+
+		public string BadgeClass => BadgeClassStatic(Stereotype);
+
 
 		public Stereotype Stereotype { get; set; } = Stereotype.Class;
 

@@ -39,6 +39,31 @@ function performSearch(query) {
     });
 }
 
+// === МАППИНГ СТЕРЕОТИПА В CSS-КЛАСС ===
+function getBadgeClass(item) {
+    // Свойства — всегда зелёные
+    if (item.type && item.type.toLowerCase() === 'property') {
+        return 'badge-property';
+    }
+
+    const stereotype = (item.stereotype || item.Stereotype || '').toLowerCase();
+
+    switch (stereotype) {
+        case 'class':
+            return 'badge-class';
+        case 'enum':
+            return 'badge-enum';
+        case 'datatype':
+            return 'badge-datatype';
+        case 'primitive':
+            return 'badge-primitive';
+        case 'all':
+            return 'bg-secondary';
+        default:
+            return 'bg-secondary';
+    }
+}
+
 // В обработчике DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('searchInput');
@@ -97,6 +122,7 @@ function updateSearchResults(results, query) {
     displayResults.forEach(result => {
         const highlightedName = highlightText(result.name, query);
         const highlightedId = highlightText(result.id, query);
+        const badgeClass = getBadgeClass(result);
 
         html += `
             <a href="${result.url}" class="list-group-item list-group-item-action py-2">
@@ -104,9 +130,8 @@ function updateSearchResults(results, query) {
                     <div class="flex-grow-1" style="min-width: 0;">
                         <div class="fw-bold text-truncate">${highlightedId}</div>
                         <small class="text-muted text-truncate d-block">${highlightedName}</small>
-                        ${result.description ? `<div class="mt-1 small text-muted text-truncate">${result.description}</div>`
-                                             : ''}
-                        <span class="badge bg-secondary ms-2">${result.type}</span>
+                        ${result.description ? `<div class="mt-1 small text-muted text-truncate">${result.description}</div>` : ''}
+                        <span class="badge ${badgeClass}">${result.type}</span>
                     </div>
                 </div>
             </a>

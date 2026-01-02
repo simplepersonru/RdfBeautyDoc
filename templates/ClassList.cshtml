@@ -5,44 +5,47 @@
     Layout = "_Layout.cshtml";
 }
 
-<h1>Classes <small class="text-muted">(@Model.Classes.Count total)</small></h1>
-<p class="lead">All types in the schema: Classes, Enums, Primitives, and Data Types</p>
+<h1>@Model.Title <small class="text-muted">(@Model.Classes.Count total)</small></h1>
 
 <!-- Фильтры -->
 <div class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-md-12">
         <input type="text" class="form-control" id="classesSearch"
                placeholder="Поиск по ID, подписи или описанию">
     </div>
 </div>
 
 <!-- Статистика -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card bg-light">
-            <div class="card-body py-2">
-                <div class="d-flex flex-wrap gap-3 justify-content-center">
-                    <span class="d-flex align-items-center">
-                        <span class="badge bg-primary me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Class)</span>
-                        <span>Classes</span>
-                    </span>
-                    <span class="d-flex align-items-center">
-                        <span class="badge bg-purple me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Enum)</span>
-                        <span>Enums</span>
-                    </span>
-                    <span class="d-flex align-items-center">
-                        <span class="badge bg-warning me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Primitive)</span>
-                        <span>Primitives</span>
-                    </span>
-                    <span class="d-flex align-items-center">
-                        <span class="badge bg-info me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.DataType)</span>
-                        <span>Data Types</span>
-                    </span>
+@if (Model.Stereotype == Stereotype.All)
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body py-2">
+                    <div class="d-flex flex-wrap gap-3 justify-content-center">
+                        <span class="d-flex align-items-center">
+                            <span class="badge badge-class me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Class)</span>
+                            <span>Classes</span>
+                        </span>
+                        <span class="d-flex align-items-center">
+                            <span class="badge badge-enum me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Enum)</span>
+                            <span>Enums</span>
+                        </span>
+                        <span class="d-flex align-items-center">
+                            <span class="badge badge-primitive me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.Primitive)</span>
+                            <span>Primitives</span>
+                        </span>
+                        <span class="d-flex align-items-center">
+                            <span class="badge badge-datatype me-2">@Model.Classes.Count(c => c.Stereotype == Stereotype.DataType)</span>
+                            <span>Data Types</span>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+}
+
 
 <!-- Таблица классов -->
 <div class="card">
@@ -102,17 +105,17 @@
                                     @if (cls.Stereotype == Stereotype.Class && cls.Properties.Any())
                                     {
                                         <small class="text-muted">
-                                            <span class="badge bg-success">@cls.Properties.Count properties</span>
+                                            <span class="badge bg-success">@cls.Properties.Count свойств</span>
                                             @if (cls.SubClass != null)
                                             {
-                                                <span class="ms-2">Extends: @cls.SubClass.Id</span>
+                                                <span class="ms-2">Наследует: @cls.SubClass.Id</span>
                                             }
                                         </small>
                                     }
                                     else if (cls.Stereotype == Stereotype.Enum && cls.Descriptions.Any())
                                     {
                                         <small class="text-muted">
-                                            <span class="badge bg-purple">@cls.Descriptions.Count values</span>
+                                            <span class="badge bg-purple">@cls.Descriptions.Count значений</span>
                                         </small>
                                     }
                                     else if (cls.Stereotype == Stereotype.DataType && cls.SubClass != null)
@@ -184,21 +187,6 @@
 
     // Инициализация
     document.addEventListener('DOMContentLoaded', function() {
-        // Добавляем возможность клика по всей строке
-        const classRows = document.querySelectorAll('.class-row');
-
-        classRows.forEach(row => {
-            row.style.cursor = 'pointer';
-            row.addEventListener('click', function(e) {
-                // Не переходим по ссылке если кликнули на ссылку
-                if (e.target.tagName !== 'A' && !e.target.closest('a')) {
-                    const link = this.querySelector('a.fw-bold');
-                    if (link && link.href) {
-                        window.location.href = link.href;
-                    }
-                }
-            });
-        });
 
         // Инициализируем фильтрацию
         filterClasses();
@@ -228,15 +216,6 @@
 @functions {
     HtmlString GetStereotypeBadge(Stereotype stereotype)
     {
-        var badgeClass = stereotype switch
-        {
-            Stereotype.Class => "badge-class",
-            Stereotype.Enum => "badge-enum",
-            Stereotype.Primitive => "badge-primitive",
-            Stereotype.DataType => "badge-datatype",
-            _ => "badge-secondary"
-        };
-
         var displayText = stereotype switch
         {
             Stereotype.Class => "Class",
@@ -246,6 +225,6 @@
             _ => stereotype.ToString()
         };
 
-        return new HtmlString($"<span class=\"badge {badgeClass}\">{displayText}</span>");
+        return new HtmlString($"<span class=\"badge {Class.BadgeClassStatic(stereotype)}\">{displayText}</span>");
     }
 }

@@ -5,14 +5,14 @@
 }
 
 <div class="text-center mb-5">
-    <h1 class="display-4">RDFS Documentation</h1>
-    <p class="lead">Interactive documentation for your RDF Schema</p>
+    <h1 class="display-4">@Model.Title</h1>
+    <p class="lead">@Model.Description</p>
 </div>
 
 <!-- Быстрая статистика -->
 <div class="row mb-4">
     <div class="col-md-2 col-6 mb-3">
-        <div class="card text-white bg-primary">
+        <div class="card text-white badge-class">
             <div class="card-body text-center py-3">
                 <h3 class="card-title mb-1">@Model.ClassCount</h3>
                 <p class="card-text mb-0">Classes</p>
@@ -21,7 +21,7 @@
         </div>
     </div>
     <div class="col-md-2 col-6 mb-3">
-        <div class="card text-white bg-success">
+        <div class="card text-white badge-property">
             <div class="card-body text-center py-3">
                 <h3 class="card-title mb-1">@Model.PropertyCount</h3>
                 <p class="card-text mb-0">Properties</p>
@@ -30,7 +30,7 @@
         </div>
     </div>
     <div class="col-md-2 col-6 mb-3">
-        <div class="card text-white bg-purple" style="background-color: #6f42c1;">
+        <div class="card text-white badge-enum">
             <div class="card-body text-center py-3">
                 <h3 class="card-title mb-1">@Model.EnumCount</h3>
                 <p class="card-text mb-0">Enums</p>
@@ -39,7 +39,7 @@
         </div>
     </div>
     <div class="col-md-2 col-6 mb-3">
-        <div class="card text-white bg-warning">
+        <div class="card text-white badge-primitive">
             <div class="card-body text-center py-3">
                 <h3 class="card-title mb-1">@Model.PrimitiveCount</h3>
                 <p class="card-text mb-0">Primitives</p>
@@ -48,7 +48,7 @@
         </div>
     </div>
     <div class="col-md-2 col-6 mb-3">
-        <div class="card text-white bg-info">
+        <div class="card text-white badge-datatype">
             <div class="card-body text-center py-3">
                 <h3 class="card-title mb-1">@Model.DataTypeCount</h3>
                 <p class="card-text mb-0">Data Types</p>
@@ -71,12 +71,12 @@
     <div class="col-lg-6 mb-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Classes</h5>
+                <h5 class="mb-0">Примеры классов</h5>
                 <a href="/classes/_index.html" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    @foreach (var cls in Model.RecentClasses)
+                    @foreach (var cls in Model.ExampleClasses)
                     {
                         <a href="/@(cls.StereoPath)/@(cls.Id).html" class="list-group-item list-group-item-action py-3 searchable">
                             <div class="d-flex w-100 justify-content-between align-items-center">
@@ -96,12 +96,12 @@
     <div class="col-lg-6 mb-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Properties</h5>
+                <h5 class="mb-0">Примеры свойств</h5>
                 <a href="/properties/_index.html" class="btn btn-sm btn-outline-success">View All</a>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    @foreach (var prop in Model.RecentProperties)
+                    @foreach (var prop in Model.ExampleProperties)
                     {
                         <a href="/properties/@(prop.Id).html" class="list-group-item list-group-item-action py-3 searchable">
                             <div class="d-flex w-100 justify-content-between">
@@ -119,55 +119,6 @@
                             </div>
                         </a>
                     }
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Быстрые ссылки -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Quick Navigation</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="card bg-light border">
-                            <div class="card-body text-center">
-                                <div class="mb-2" style="font-size: 2rem;">📦</div>
-                                <h5>Classes</h5>
-                                <p class="text-muted">Object types with properties</p>
-                                <a href="/classes/_index.html" class="btn btn-primary">Browse Classes</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light border">
-                            <div class="card-body text-center">
-                                <div class="mb-2" style="font-size: 2rem;">🔗</div>
-                                <h5>Properties</h5>
-                                <p class="text-muted">Attributes and relationships</p>
-                                <a href="/properties/_index.html" class="btn btn-success">Browse Properties</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light border">
-                            <div class="card-body text-center">
-                                <div class="mb-2" style="font-size: 2rem;">📝</div>
-                                <h5>Enums & Types</h5>
-                                <p class="text-muted">Value types and enumerations</p>
-                                <div class="btn-group">
-                                    <a href="/enums/_index.html" class="btn btn-outline-purple">Enums</a>
-                                    <a href="/primitives/_index.html" class="btn btn-outline-warning">Primitives</a>
-                                    <a href="/datatypes/_index.html" class="btn btn-outline-info">Data Types</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

@@ -13,18 +13,12 @@ namespace RdfsBeautyDoc
         public string Url { get; set; }
     }
 
-    public class NavigationViewModel
-    {
-        public List<BreadcrumbItem> Breadcrumbs { get; set; } = new();
-        public List<Class> RecentClasses { get; set; } = new();
-    }
-
     public class LayoutViewModel
     {
         public string Title { get; set; } = "RDFS Documentation";
-        public DateTime Generated { get; set; } = DateTime.Now;
         public List<BreadcrumbItem> Breadcrumbs { get; set; } = new();
         public string CurrentPage { get; set; } = "home";
+        public int EnitityCount { get; set; }
         public int ClassCount { get; set; }
         public int PropertyCount { get; set; }
         public int EnumCount { get; set; }
@@ -39,15 +33,15 @@ namespace RdfsBeautyDoc
 
     public class IndexViewModel : LayoutViewModel
     {
-        public List<Class> RecentClasses { get; set; } = new();
-        public List<Property> RecentProperties { get; set; } = new();
+        public List<Class> ExampleClasses { get; set; } = new();
+        public string Description { get; set; } = string.Empty;
+        public List<Property> ExampleProperties { get; set; } = new();
     }
 
     public class ClassViewModel : LayoutViewModel
     {
         public Class Class { get; set; }
         public List<Property> Properties { get; set; } = new();
-        public List<Class> ParentClasses { get; set; } = new();
         public List<Class> ChildClasses { get; set; } = new();
         public List<Class> UsedInClasses { get; set; } = new();
     }
@@ -63,6 +57,7 @@ namespace RdfsBeautyDoc
     public class ClassListViewModel : LayoutViewModel
     {
         public List<Class> Classes { get; set; } = new();
+        public Stereotype Stereotype { get; set; }
     }
 
     public class PropertyListViewModel : LayoutViewModel
@@ -70,18 +65,4 @@ namespace RdfsBeautyDoc
         public List<Property> Properties { get; set; } = new();
     }
 
-    public class EnumListViewModel : LayoutViewModel
-    {
-        public List<Class> Enums { get; set; } = new();
-    }
-
-    public class PrimitiveListViewModel : LayoutViewModel
-    {
-        public List<Class> Primitives { get; set; } = new();
-    }
-
-    public class DataTypeListViewModel : LayoutViewModel
-    {
-        public List<Class> DataTypes { get; set; } = new();
-    }
 }
