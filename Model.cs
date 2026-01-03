@@ -1,13 +1,15 @@
 ﻿namespace RdfsBeautyDoc
 {
-	public class Identified
+	public abstract class Base
 	{
-		public string Id { get; set; } = string.Empty;
-	}
-	public class Property : Identified
-	{
-		public string FieldName { get; set; } = string.Empty;
 		public string Label { get; set; } = string.Empty;
+		public string Namespace { get; set; } = string.Empty;
+		public string Name { get; set; } = string.Empty;
+		public virtual string Id => $"{Namespace}:{Name}";
+		
+	}
+	public class Property : Base
+	{
 		/// <summary>
 		/// Класс, которому принадлежит атрибут
 		/// </summary>
@@ -18,11 +20,15 @@
 		/// Тип атрибута (может быть примитивным типа Float, может быть именем класса, если ссылка на класс)
 		/// </summary>
 		public Class Range { get; set; }
+
+		public override string Id => $"{Namespace}:{Domain.Name}.{Name}";
 	}
 
-	public class Description : Identified
+	public class Description : Base
 	{
-		public string Label { get; set; } = string.Empty;
+		required public Class Domain { get; set; }
+
+		public override string Id => $"{Namespace}:{Domain.Name}.{Name}";
 	}
 
 
@@ -35,10 +41,8 @@
 		All
 	}
 
-	public class Class : Identified
+	public class Class : Base
 	{
-
-		public string Label { get; set; } = string.Empty;
 		public string Comment { get; set; } = string.Empty;
 		public string SvgDiagram { get; set; } = string.Empty;
 		public Class? SubClass { get; set; }

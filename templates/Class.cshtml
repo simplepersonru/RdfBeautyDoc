@@ -55,7 +55,7 @@
                                     <tr class="searchable">
                                         <td>
                                             <a href="/properties/@(prop.Id).html" class="text-decoration-none">
-                                                @prop.FieldName
+                                                @prop.Name
                                             </a>
                                         </td>
                                         <td>
@@ -145,7 +145,7 @@
         <!-- Использование (где этот класс используется как range) -->
         @{
             var usedInProperties = Model.AllProperties
-            .Where(p => p.Range == Model.Class.Id)
+            .Where(p => p.Range.Id == Model.Class.Id)
             .ToList();
         }
 
@@ -176,7 +176,7 @@
                                         </td>
                                         <td>
                                             <a href="/properties/@(prop.Id).html" class="badge badge-property text-decoration-none">
-                                                @prop.FieldName
+                                                @prop.Name
                                             </a>
                                         </td>
                                         <td>

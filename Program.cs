@@ -16,6 +16,7 @@ namespace RdfsBeautyDoc
 			public required string OutputPath { get; set; }
 			public required string DocTitle { get; set; }
 			public required string DocDescription { get; set; }
+			public required string CommonNamespace { get; set; }
 		}
 		static string GetEnv(string env)
 		{
@@ -33,17 +34,18 @@ namespace RdfsBeautyDoc
 				PlantumlRemoteUrl = GetEnv("RDFSDOC_PLANTUML_URL"),
 				OutputPath = GetEnv("RDFSDOC_OUTPUT_PATH"),
 				DocTitle = GetEnv("RDFSDOC_TITLE"),
-				DocDescription = GetEnv("RDFSDOC_DESCRIPTION")
+				DocDescription = GetEnv("RDFSDOC_DESCRIPTION"),
+				CommonNamespace = GetEnv("RDFSDOC_COMMON_NAMESPACE")
 			};
 
-			var classes = XmlParse.Work(options.RdfsPath);
+			var classes = new XmlParse(options).Work(options.RdfsPath);
 
 			var umlrender = new PlantUML(options.PlantumlRemoteUrl);
 			await umlrender.FillClassesAsync(classes);
 
 			var generator = new SiteGenerator(
 				data: classes,
-				outputPath: options.OutputPath);
+				options: options);
 
 			// 3. Генерируем сайт
 			await generator.GenerateAsync();

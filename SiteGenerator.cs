@@ -98,7 +98,7 @@ namespace RdfsBeautyDoc
         {
             var model = new PropertyViewModel
             {
-                Title = prop.FieldName,
+                Title = prop.Name,
                 Property = prop,
                 CurrentPage = "properties",
                 EnitityCount = _data.Count,
