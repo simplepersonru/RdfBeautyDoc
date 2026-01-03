@@ -23,17 +23,13 @@ namespace RdfsBeautyDoc
         private readonly RazorLightEngine _engine;
         private readonly Dictionary<string, Class> _data;
         private readonly List<Class> _classes;
-        private readonly List<Class> _enums;
-        private readonly List<Class> _primitives;
-        private readonly List<Class> _dataTypes;
         private readonly List<Property> _properties;
-        private readonly string _templatePath;
-        private readonly string _outputPath;
+        private readonly Program.Options _options;
 
-        public SiteGenerator(Dictionary<string, Class> data, string outputPath)
+        public SiteGenerator(Dictionary<string, Class> data, Program.Options options)
         {
             _data = data;
-            _outputPath = outputPath;
+            _options = options;
 
             // Настраиваем RazorLight для работы с файлами
             _engine = new RazorLightEngineBuilder()
@@ -44,18 +40,6 @@ namespace RdfsBeautyDoc
             // Разделяем данные по стереотипам
             _classes = data.Values
                 .Where(x => x.Stereotype == Stereotype.Class)
-                .ToList();
-
-            _enums = data.Values
-                .Where(x => x.Stereotype == Stereotype.Enum)
-                .ToList();
-
-            _primitives = data.Values
-                .Where(x => x.Stereotype == Stereotype.Primitive)
-                .ToList();
-
-            _dataTypes = data.Values
-                .Where(x => x.Stereotype == Stereotype.DataType)
                 .ToList();
 
             // Собираем все свойства
@@ -71,15 +55,15 @@ namespace RdfsBeautyDoc
 
         private void CreateOutputDirectories()
         {
-            Directory.CreateDirectory(_outputPath);
-            Directory.CreateDirectory(Path.Combine(_outputPath, "classes"));
-            Directory.CreateDirectory(Path.Combine(_outputPath, "properties"));
-            Directory.CreateDirectory(Path.Combine(_outputPath, "enums"));
-            Directory.CreateDirectory(Path.Combine(_outputPath, "primitives"));
-            Directory.CreateDirectory(Path.Combine(_outputPath, "datatypes"));
-            Directory.CreateDirectory(Path.Combine(_outputPath, "assets"));
-            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "js"));
-            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "css"));
+            Directory.CreateDirectory(_options.OutputPath);
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "classes"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "properties"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "enums"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "primitives"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "datatypes"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "assets"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "assets", "js"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "assets", "css"));
         }
 
         public async Task GenerateAsync()
@@ -112,21 +96,12 @@ namespace RdfsBeautyDoc
 
         private async Task GeneratePropertyPageAsync(Property prop)
         {
-            var rangeClass = _data.TryGetValue(prop.Range, out var rc) ? rc : null;
-
             var model = new PropertyViewModel
             {
                 Title = prop.FieldName,
                 Property = prop,
-                DomainClass = prop.Domain,
-                RangeClass = rangeClass,
                 CurrentPage = "properties",
-                ClassCount = _classes.Count,
-                PropertyCount = _properties.Count,
                 EnitityCount = _data.Count,
-                EnumCount = _enums.Count,
-                PrimitiveCount = _primitives.Count,
-                DataTypeCount = _dataTypes.Count,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },
@@ -164,7 +139,7 @@ namespace RdfsBeautyDoc
         {
             var properties = _properties.Where(p => p.Domain.Id == cls.Id).ToList();
             var usedInClasses = _properties
-                .Where(p => p.Range == cls.Id)
+                .Where(p => p.Range.Id == cls.Id)
                 .Select(p => p.Domain)
                 .DistinctBy(c => c.Id)
                 .ToList();
@@ -182,19 +157,9 @@ namespace RdfsBeautyDoc
                 Class = cls,
                 Properties = properties,
                 ChildClasses = childClasses,
-                UsedInClasses = usedInClasses,
                 CurrentPage = cls.StereoPath,
-                ClassCount = _classes.Count,
                 EnitityCount = _data.Count,
-                PropertyCount = _properties.Count,
-                EnumCount = _enums.Count,
-                PrimitiveCount = _primitives.Count,
-                DataTypeCount = _dataTypes.Count,
-                AllClasses = _classes,
                 AllProperties = _properties,
-                AllEnums = _enums,
-                AllPrimitives = _primitives,
-                AllDataTypes = _dataTypes,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },
@@ -243,40 +208,36 @@ namespace RdfsBeautyDoc
 
             await WriteOutputAsync("assets/search-index.json", json);
 
-            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "js"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "assets", "js"));
             File.Copy(Path.Combine("assets", "js", "search.js"),
-                      Path.Combine(_outputPath, "assets", "js", "search.js"),
+                      Path.Combine(_options.OutputPath, "assets", "js", "search.js"),
                       overwrite: true);
 
-            Directory.CreateDirectory(Path.Combine(_outputPath, "assets", "css"));
+            Directory.CreateDirectory(Path.Combine(_options.OutputPath, "assets", "css"));
             File.Copy(Path.Combine("assets", "css", "site.css"),
-                      Path.Combine(_outputPath, "assets", "css", "site.css"),
+                      Path.Combine(_options.OutputPath, "assets", "css", "site.css"),
                       overwrite: true);
         }
-
+ 
         private async Task GenerateIndexAsync()
         {
             var model = new IndexViewModel
             {
-                Title = "CIM ontology",
-                Description = "Онтология стандартного CIM по IEC-61970 с примесью ГОСТ РФ (приказ 1340)",
+                Title = _options.DocTitle,
+				// "Онтология стандартного CIM по IEC-61970 с примесью ГОСТ РФ (приказ 1340)"
+				Description = _options.DocDescription,
                 ExampleClasses = _classes.Take(5).ToList(),
                 ExampleProperties = _properties.Take(5).ToList(),
                 CurrentPage = "home",
                 ClassCount = _classes.Count,
                 PropertyCount = _properties.Count,
-                EnumCount = _enums.Count,
-                PrimitiveCount = _primitives.Count,
+                EnumCount = _data.Values.Where(x => x.Stereotype == Stereotype.Enum).Count(),
+                PrimitiveCount = _data.Values.Where(x => x.Stereotype == Stereotype.Primitive).Count(),
+                DataTypeCount = _data.Values.Where(x => x.Stereotype == Stereotype.DataType).Count(),
                 EnitityCount = _data.Count,
-                DataTypeCount = _dataTypes.Count,
-                AllClasses = _classes,
-                AllProperties = _properties,
-                AllEnums = _enums,
-                AllPrimitives = _primitives,
-                AllDataTypes = _dataTypes
             };
 
-            string html = await _engine.CompileRenderAsync("Index.cshtml", model);
+			string html = await _engine.CompileRenderAsync("Index.cshtml", model);
             await WriteOutputAsync("index.html", html);
         }
 
@@ -307,12 +268,7 @@ namespace RdfsBeautyDoc
                 Classes = classes,
                 Stereotype = type,
                 CurrentPage = stereotype(type),
-                ClassCount = _classes.Count,
-                PropertyCount = _properties.Count,
-                EnumCount = _enums.Count,
-                PrimitiveCount = _primitives.Count,
                 EnitityCount = _data.Count,
-                DataTypeCount = _dataTypes.Count,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },
@@ -331,12 +287,7 @@ namespace RdfsBeautyDoc
                 Title = "All Properties",
                 Properties = _properties.OrderBy(p => p.Id).ToList(),
                 CurrentPage = "properties",
-                ClassCount = _classes.Count,
-                PropertyCount = _properties.Count,
-                EnumCount = _enums.Count,
                 EnitityCount = _data.Count,
-                PrimitiveCount = _primitives.Count,
-                DataTypeCount = _dataTypes.Count,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },
@@ -350,7 +301,7 @@ namespace RdfsBeautyDoc
 
         private async Task WriteOutputAsync(string relativePath, string content)
         {
-            string fullPath = Path.Combine(_outputPath, relativePath);
+            string fullPath = Path.Combine(_options.OutputPath, relativePath);
             string? directory = Path.GetDirectoryName(fullPath);
 
             if (!string.IsNullOrEmpty(directory))

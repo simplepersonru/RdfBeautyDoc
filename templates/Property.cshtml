@@ -32,10 +32,10 @@
 
                     <dt class="col-sm-3">Тип</dt>
                     <dd class="col-sm-9">
-                        <a href="/@(Model.RangeClass.StereoPath)/@(Model.RangeClass.Id).html" class="text-decoration-none">
-                            <span class="badge @(Model.RangeClass.BadgeClass)">@Model.Property.Range</span>
+                        <a href="/@(Model.Range.StereoPath)/@(Model.Range.Id).html" class="text-decoration-none">
+                            <span class="badge @(Model.Range.BadgeClass)">@Model.Property.Range</span>
                         </a>
-                        <small class="text-muted d-block mt-1">@Model.RangeClass.Label</small>
+                        <small class="text-muted d-block mt-1">@Model.Range.Label</small>
                     </dd>
 
                     @if (!string.IsNullOrEmpty(Model.Property.Multiplicity))
@@ -76,9 +76,9 @@
                        class="list-group-item list-group-item-action">
                         📋 Все свойства
                     </a>
-                    @if (Model.RangeClass != null)
+                    @if (Model.Range != null)
                     {
-                        <a href="/@(Model.RangeClass.StereoPath)/@(Model.RangeClass.Id).html"
+                        <a href="/@(Model.Range.StereoPath)/@(Model.Range.Id).html"
                            class="list-group-item list-group-item-action">
                             → Перейти к типу
                         </a>

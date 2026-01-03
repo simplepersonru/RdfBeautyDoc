@@ -17,8 +17,7 @@
 		/// <summary>
 		/// Тип атрибута (может быть примитивным типа Float, может быть именем класса, если ссылка на класс)
 		/// </summary>
-		public string Range { get; set; } = string.Empty;
-		public Class? RangeClass { get; set; }
+		public Class Range { get; set; }
 	}
 
 	public class Description : Identified

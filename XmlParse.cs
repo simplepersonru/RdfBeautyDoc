@@ -11,11 +11,8 @@ namespace RdfsBeautyDoc
 {
 	internal class XmlParse
 	{
-		static T? GetOrCreate<T>(Dictionary<string, T> objects, string? key) where T : Identified, new()
+		static T GetOrCreate<T>(Dictionary<string, T> objects, string key) where T : Identified, new()
 		{
-			if (key == null)
-				return default(T);
-
 			T? obj;
 
 			if (!objects.TryGetValue(key, out obj))
@@ -43,7 +40,7 @@ namespace RdfsBeautyDoc
 					foreach (var child in el.Elements())
 					{
 						if (child.Name.LocalName == "domain")
-							domainClass = GetOrCreate(classes, child.FirstAttribute?.Value.Substring(1));
+							domainClass = GetOrCreate(classes, child.FirstAttribute.Value.Substring(1));
 					}
 					if (domainClass == null)
 						continue;
@@ -68,18 +65,18 @@ namespace RdfsBeautyDoc
 							prop.Label = child.Value;
 						else if (child.Name.LocalName == "range")
 						{
-							prop.Range = child.FirstAttribute?.Value.Substring(1);
-							prop.RangeClass = GetOrCreate(classes, prop.Range);
+							string range = child.FirstAttribute.Value.Substring(1);
+							prop.Range = GetOrCreate(classes, range);
 						}
 						else if (child.Name.LocalName == "multiplicity")
-							prop.Multiplicity = child.FirstAttribute?.Value.Substring(3);
+							prop.Multiplicity = child.FirstAttribute.Value.Substring(3);
 						else if (child.Name.LocalName == "inverseRoleName")
-							prop.InverseRoleName = child.FirstAttribute?.Value;
+							prop.InverseRoleName = child.FirstAttribute.Value;
 					}
 				}
 				else if (el.Name.LocalName == "Class")
 				{
-					Class? cls = GetOrCreate(classes, el.FirstAttribute?.Value);
+					Class? cls = GetOrCreate(classes, el.FirstAttribute.Value);
 					if (cls == null)
 						continue;
 
@@ -91,7 +88,7 @@ namespace RdfsBeautyDoc
 							cls.Comment = child.Value;
 						else if (child.Name.LocalName == "stereotype")
 						{
-							cls.Stereotype = child.FirstAttribute?.Value.Substring(1) switch
+							cls.Stereotype = child.FirstAttribute.Value.Substring(1) switch
 							{
 								"Enumeration" => Stereotype.Enum,
 								"Datatype" => Stereotype.DataType,
@@ -100,7 +97,7 @@ namespace RdfsBeautyDoc
 							};
 						}
 						else if (child.Name.LocalName == "subClassOf")
-							cls.SubClass = GetOrCreate(classes, child.FirstAttribute?.Value.Substring(1)); // без # в начале
+							cls.SubClass = GetOrCreate(classes, child.FirstAttribute.Value.Substring(1)); // без # в начале
 					}
 				}
 				else if (el.Name.LocalName == "Description")

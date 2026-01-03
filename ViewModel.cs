@@ -9,9 +9,9 @@ namespace RdfsBeautyDoc
     // Дополнительные модели для навигации
     public class BreadcrumbItem
     {
-        public string Name { get; set; }
-        public string Url { get; set; }
-    }
+        public string Name { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+	}
 
     public class LayoutViewModel
     {
@@ -19,16 +19,6 @@ namespace RdfsBeautyDoc
         public List<BreadcrumbItem> Breadcrumbs { get; set; } = new();
         public string CurrentPage { get; set; } = "home";
         public int EnitityCount { get; set; }
-        public int ClassCount { get; set; }
-        public int PropertyCount { get; set; }
-        public int EnumCount { get; set; }
-        public int PrimitiveCount { get; set; }
-        public int DataTypeCount { get; set; }
-        public List<Class> AllClasses { get; set; } = new();
-        public List<Property> AllProperties { get; set; } = new();
-        public List<Class> AllEnums { get; set; } = new();
-        public List<Class> AllPrimitives { get; set; } = new();
-        public List<Class> AllDataTypes { get; set; } = new();
     }
 
     public class IndexViewModel : LayoutViewModel
@@ -36,21 +26,24 @@ namespace RdfsBeautyDoc
         public List<Class> ExampleClasses { get; set; } = new();
         public string Description { get; set; } = string.Empty;
         public List<Property> ExampleProperties { get; set; } = new();
-    }
+		public int ClassCount { get; set; }
+		public int PropertyCount { get; set; }
+		public int EnumCount { get; set; }
+		public int PrimitiveCount { get; set; }
+		public int DataTypeCount { get; set; }
+	}
 
     public class ClassViewModel : LayoutViewModel
     {
-        public Class Class { get; set; }
+        public Class Class { get; set; } = new();
         public List<Property> Properties { get; set; } = new();
         public List<Class> ChildClasses { get; set; } = new();
-        public List<Class> UsedInClasses { get; set; } = new();
-    }
+		public List<Property> AllProperties { get; set; } = new();
+	}
 
     public class PropertyViewModel : LayoutViewModel
     {
         public Property Property { get; set; }
-        public Class DomainClass { get; set; }
-        public Class RangeClass { get; set; }
     }
 
     // Для списков
