@@ -17,6 +17,7 @@ namespace RdfsBeautyDoc
 			public required string DocTitle { get; set; }
 			public required string DocDescription { get; set; }
 			public required string CommonNamespace { get; set; }
+			public bool UseNamespaceForProperties { get; set; } = false;
 		}
 		static string GetEnv(string env)
 		{
@@ -35,10 +36,11 @@ namespace RdfsBeautyDoc
 				OutputPath = GetEnv("RDFSDOC_OUTPUT_PATH"),
 				DocTitle = GetEnv("RDFSDOC_TITLE"),
 				DocDescription = GetEnv("RDFSDOC_DESCRIPTION"),
-				CommonNamespace = GetEnv("RDFSDOC_COMMON_NAMESPACE")
+				CommonNamespace = GetEnv("RDFSDOC_COMMON_NAMESPACE"),
+				UseNamespaceForProperties = Convert.ToBoolean(Environment.GetEnvironmentVariable("RDFSDOC_USE_NAMESPACE_FOR_PROPERTIES"))
 			};
 
-			var classes = new XmlParse(options).Work(options.RdfsPath);
+			var classes = new XmlParse(options).Work();
 
 			var umlrender = new PlantUML(options.PlantumlRemoteUrl);
 			await umlrender.FillClassesAsync(classes);

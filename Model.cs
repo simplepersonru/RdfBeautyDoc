@@ -22,6 +22,7 @@
 		public Class Range { get; set; }
 
 		public override string Id => $"{Namespace}:{Domain.Name}.{Name}";
+		public string PropertyId => $"{Namespace}:{Name}";
 	}
 
 	public class Description : Base
