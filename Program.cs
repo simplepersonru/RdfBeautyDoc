@@ -1,11 +1,4 @@
-﻿using PlantUml.Net;
-using System.Collections.Generic;
-using System.IO;
-using System.Xml;
-using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace RdfsBeautyDoc
+﻿namespace RdfsBeautyDoc
 {
 	internal class Program
 	{
@@ -39,6 +32,17 @@ namespace RdfsBeautyDoc
 				CommonNamespace = GetEnv("RDFSDOC_COMMON_NAMESPACE"),
 				UseNamespaceForProperties = Convert.ToBoolean(Environment.GetEnvironmentVariable("RDFSDOC_USE_NAMESPACE_FOR_PROPERTIES"))
 			};
+
+			//var options = new Options
+			//{
+			//	RdfsPath = "C:\\reposroot\\redkit-lab\\dmsutils\\cimparser\\scripts\\ck-rdf.xml",
+			//	PlantumlRemoteUrl = "http://localhost:55555",
+			//	OutputPath = "output",
+			//	DocTitle = "Example",
+			//	DocDescription = "Example descr",
+			//	CommonNamespace = "cim",
+			//	UseNamespaceForProperties = false
+			//};
 
 			var classes = new XmlParse(options).Work();
 

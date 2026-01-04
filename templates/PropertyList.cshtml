@@ -31,15 +31,15 @@
                     data-id="@prop.Id.ToLower()"
                     data-label="@(prop.Label?.ToLower() ?? "")"
                     data-domain="@prop.Domain.Id.ToLower()"
-                    data-range="@prop.Range.ToLower()">
+                    data-range="@prop.Range.Id.ToLower()">
                     <td>
 
                         <div class="d-flex flex-column gap-1">
-                            <a href="/properties/@(prop.Id).html" class="fw-bold">@prop.Id</a>
+                            <a href="/@prop.Href" class="fw-bold">@prop.Id</a>
                             <div class="d-flex flex-row gap-2">
                                 <span>Тип</span>
-                                <a href="/@(prop.Range.StereoPath)/@(prop.Range.Id).html" class="badge @(prop.Range.BadgeClass) text-decoration-none">
-                                    @prop.Range
+                                <a href="/@prop.Range.Href" class="badge @(prop.Range.BadgeClass) text-decoration-none">
+                                    @prop.Range.NamespacedId
                                 </a>
                                 @if (!string.IsNullOrEmpty(prop.Multiplicity))
                                 {

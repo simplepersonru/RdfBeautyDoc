@@ -101,17 +101,18 @@ namespace RdfsBeautyDoc
                 Title = prop.Name,
                 Property = prop,
                 CurrentPage = "properties",
+                PropertyCount = _properties.Count,
                 EnitityCount = _data.Count,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },
                     new() { Name = "Properties", Url = "/properties/_index.html" },
-                    new() { Name = prop.Id, Url = $"/properties/{prop.Id}.html" }
+                    new() { Name = prop.Id, Url = prop.Href }
                 }
             };
 
             string html = await _engine.CompileRenderAsync("Property.cshtml", model);
-            await WriteOutputAsync($"properties/{prop.Id}.html", html);
+            await WriteOutputAsync(prop.Href, html);
         }
 
         private string stereotype(Stereotype val)
@@ -153,25 +154,26 @@ namespace RdfsBeautyDoc
 
             var model = new ClassViewModel
             {
-                Title = cls.Id,
+                Title = cls.Name,
                 Class = cls,
                 Properties = properties,
                 ChildClasses = childClasses,
                 CurrentPage = cls.StereoPath,
                 EnitityCount = _data.Count,
+                PropertyCount = _properties.Count,
                 AllProperties = _properties,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },
                     new() { Name = nameList(cls.Stereotype), Url = $"/{cls.StereoPath}/_index.html" },
-                    new() { Name = cls.Id, Url = $"/{cls.StereoPath}/{cls.Id}.html" }
+                    new() { Name = cls.Name, Url = cls.Href }
                 }
             };
 
             string html = await _engine.CompileRenderAsync("Class.cshtml", model);
 
 
-            await WriteOutputAsync($"{cls.StereoPath}/{cls.Id}.html", html);
+            await WriteOutputAsync(cls.Href, html);
         }
 
         private async Task GenerateSearchIndexAsync()
@@ -183,20 +185,20 @@ namespace RdfsBeautyDoc
                 {
                     id = c.Id,
                     name = c.Label,
-                    url = $"/{c.StereoPath}/{c.Id}.html",
+                    url = $"/{c.Href}",
                     type = c.Stereotype.ToString(),
                     description = c.Comment,
                     stereotype = c.Stereotype.ToString()
                 }),
                 Properties = _properties.Select(p => new
                 {
-                    id = p.Id,
+                    id = $"{p.Domain.Name}.{p.Name}",
                     name = p.Label,
-                    url = $"/properties/{p.Id}.html",
+                    url = $"/{p.Href}",
                     type = "Property",
-                    description = $"{p.Domain.Id} → {p.Range}",
-                    domain = p.Domain.Id,
-                    range = p.Range
+                    description = $"{p.Domain.Name} → {p.Range.Name}",
+                    domain = p.Domain.Name,
+                    range = p.Range.Name
                 }),
             };
 
@@ -269,6 +271,7 @@ namespace RdfsBeautyDoc
                 Stereotype = type,
                 CurrentPage = stereotype(type),
                 EnitityCount = _data.Count,
+                PropertyCount = _properties.Count,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },
@@ -288,6 +291,7 @@ namespace RdfsBeautyDoc
                 Properties = _properties.OrderBy(p => p.Id).ToList(),
                 CurrentPage = "properties",
                 EnitityCount = _data.Count,
+                PropertyCount = _properties.Count,
                 Breadcrumbs = new List<BreadcrumbItem>
                 {
                     new() { Name = "Home", Url = "/index.html" },

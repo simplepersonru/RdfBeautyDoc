@@ -1,3 +1,37 @@
+/* Отключаем подчеркивание и стили для ссылок внутри SVG */
+.diagram-container a,
+.diagram-content a,
+.svg-container a,
+[class*="diagram"] a,
+svg a {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    outline: none !important;
+}
+
+/* Также для всех элементов внутри SVG */
+.diagram-container svg *,
+.diagram-content svg * {
+    text-decoration: none !important;
+}
+
+/* Особенно для текстовых элементов с ссылками */
+.diagram-container svg text,
+.diagram-container svg tspan,
+.diagram-container svg textPath {
+    text-decoration: none !important;
+    cursor: default !important;
+}
+
+/* Отключаем hover эффекты */
+.diagram-container a:hover,
+.diagram-container a:focus,
+.diagram-container a:active {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    outline: none !important;
+}
+
 /* Дополнительные стили для всех шаблонов */
 .search-highlight {
     background-color: #fff3cd !important;

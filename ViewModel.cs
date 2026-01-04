@@ -18,6 +18,7 @@ namespace RdfsBeautyDoc
         public string Title { get; set; } = "RDFS Documentation";
         public List<BreadcrumbItem> Breadcrumbs { get; set; } = new();
         public string CurrentPage { get; set; } = "home";
+        public int PropertyCount { get; set; }
         public int EnitityCount { get; set; }
     }
 
@@ -27,7 +28,6 @@ namespace RdfsBeautyDoc
         public string Description { get; set; } = string.Empty;
         public List<Property> ExampleProperties { get; set; } = new();
 		public int ClassCount { get; set; }
-		public int PropertyCount { get; set; }
 		public int EnumCount { get; set; }
 		public int PrimitiveCount { get; set; }
 		public int DataTypeCount { get; set; }

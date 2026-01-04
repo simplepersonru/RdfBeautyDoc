@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk;Microsoft.NET.Sdk.Publish">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -19,9 +19,9 @@
 		<None Update="templates\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None  Update="assets\**">
+		<None Update="assets\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None >
+		</None>
 	</ItemGroup>
 
 	<Target Name="CleanOutput" BeforeTargets="Build">

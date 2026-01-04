@@ -67,10 +67,10 @@
                             data-label="@(cls.Label?.ToLower() ?? "")"
                             data-description="@(cls.Comment?.ToLower() ?? "")"
                             data-stereotype="@cls.Stereotype.ToString().ToLower()"
-                            data-url="/@(cls.StereoPath)/@(cls.Id).html">
+                            data-url="/@cls.Href">
                             <td>
                                 <div class="d-flex flex-column">
-                                    <a href="/@(cls.StereoPath)/@(cls.Id).html" class="text-decoration-none fw-bold">
+                                    <a href="/@cls.Href" class="text-decoration-none fw-bold">
                                         @cls.Id
                                     </a>
                                     <small >

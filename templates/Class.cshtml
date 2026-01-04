@@ -17,14 +17,21 @@
     <div class="alert alert-info">@Model.Class.Comment</div>
 }
 
+
+
+<!-- Разметка -->
 @if (!string.IsNullOrEmpty(Model.Class.SvgDiagram))
 {
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="mb-0">Diagram</h5>
         </div>
-        <div class="card-body diagram-container">
-            @(new Microsoft.AspNetCore.Html.HtmlString(Model.Class.SvgDiagram))
+        <div class="card-body p-0">
+            <div class="diagram-viewport" style="width: 100%; height: 500px; overflow: hidden;">
+                <div class="diagram-content">
+                    @(new Microsoft.AspNetCore.Html.HtmlString(Model.Class.SvgDiagram))
+                </div>
+            </div>
         </div>
     </div>
 }
@@ -54,21 +61,14 @@
                                 {
                                     <tr class="searchable">
                                         <td>
-                                            <a href="/properties/@(prop.Id).html" class="text-decoration-none">
+                                            <a href="/@prop.Href" class="text-decoration-none">
                                                 @prop.Name
                                             </a>
                                         </td>
                                         <td>
-                                            @if (prop.Range != null)
-                                            {
-                                                <a href="/@(prop.Range.StereoPath)/@(prop.Range.Id).html" class="badge @(prop.Range.BadgeClass) text-decoration-none">
-                                                    @prop.Range
-                                                </a>
-                                            }
-                                            else
-                                            {
-                                                <code>@prop.Range</code>
-                                            }
+                                            <a href="/@prop.Range.Href" class="badge @(prop.Range.BadgeClass) text-decoration-none">
+                                                @prop.Range.Id
+                                            </a>
                                         </td>
                                         <td>
                                             @if (!string.IsNullOrEmpty(prop.Label))
@@ -121,7 +121,7 @@
                                 {
                                     <tr class="searchable">
                                         <td>
-                                            <code>@desc.Id</code>
+                                            <code>@desc.Name</code>
                                         </td>
                                         <td>
                                             @if (!string.IsNullOrEmpty(desc.Label))
@@ -170,13 +170,13 @@
                                 {
                                     <tr class="searchable">
                                         <td>
-                                            <a href="/@(prop.Domain.StereoPath)/@(prop.Domain.Id).html" class="badge badge-class text-decoration-none">
-                                                @prop.Domain.Id
+                                            <a href="/@prop.Domain.Href" class="badge badge-class text-decoration-none">
+                                                @prop.Domain.NamespacedId
                                             </a>
                                         </td>
                                         <td>
-                                            <a href="/properties/@(prop.Id).html" class="badge badge-property text-decoration-none">
-                                                @prop.Name
+                                            <a href="/@prop.Href" class="badge badge-property text-decoration-none">
+                                                @prop.NamespacedId
                                             </a>
                                         </td>
                                         <td>
@@ -218,8 +218,8 @@
                                 {
                                     <tr class="searchable">
                                         <td>
-                                            <a href="/@(cls.StereoPath)/@(cls.Id).html" class="badge badge-class text-decoration-none">
-                                                @cls.Id
+                                            <a href="/@cls.Href" class="badge badge-class text-decoration-none">
+                                                @cls.NamespacedId
                                             </a>
                                         </td>
                                         <td>
@@ -252,7 +252,7 @@
             <div class="card-body">
                 <dl class="row mb-0">
                     <dt class="col-sm-4">ID</dt>
-                    <dd class="col-sm-8"><code>@Model.Class.Id</code></dd>
+                    <dd class="col-sm-8"><code>@Model.Class.NamespacedId</code></dd>
 
                     <dt class="col-sm-4">Тип</dt>
                     <dd class="col-sm-8">@GetStereotypeBadge(Model.Class.Stereotype)</dd>
@@ -267,8 +267,8 @@
                     {
                         <dt class="col-sm-4">Наследует</dt>
                         <dd class="col-sm-8">
-                            <a href="/@(Model.Class.StereoPath)/@(Model.Class.SubClass.Id).html" class="text-decoration-none">
-                                @Model.Class.SubClass.Id
+                            <a href="/@Model.Class.SubClass.Href" class="text-decoration-none">
+                                @Model.Class.SubClass.NamespacedId
                             </a>
                         </dd>
                     }
@@ -295,14 +295,14 @@
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    <a href="/@(Model.Class.StereoPath)/_index.html" class="list-group-item list-group-item-action">
+                    <a href="/@Model.Class.Href" class="list-group-item list-group-item-action">
                         ← All @Model.Breadcrumbs[1].Name
                     </a>
                     @if (Model.Class.SubClass != null)
                     {
-                        <a href="/@(Model.Class.StereoPath)/@(Model.Class.SubClass.Id).html"
+                        <a href="/@Model.Class.SubClass.Href"
                            class="list-group-item list-group-item-action">
-                            ↑ Parent: @Model.Class.SubClass.Id
+                            ↑ Parent: @Model.Class.SubClass.NamespacedId
                         </a>
                     }
                     <a href="/index.html" class="list-group-item list-group-item-action">
@@ -313,6 +313,32 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const elem = document.querySelector('.diagram-content');
+        const parent = document.querySelector('.diagram-viewport');
+
+        // Обернем SVG в div для лучшего управления
+        if (elem.querySelector('svg')) {
+            elem.querySelector('svg').style.display = 'block';
+        }
+
+        // Инициализируем panzoom
+        panzoom(elem, {
+            bounds: false,
+            boundsPadding: 0.1,
+            maxZoom: 50,
+            minZoom: 0.01,
+            zoomSpeed: 0.1,
+            initialZoom: 0.45,
+            initialX: 0,
+            initialY: 0,
+            contain: 'outside',
+            smoothScroll: false
+        });
+    });
+</script>
 
 @functions {
     HtmlString GetStereotypeBadge(Stereotype stereotype)
